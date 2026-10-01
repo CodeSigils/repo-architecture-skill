@@ -61,6 +61,8 @@ BOUNDARIES = {
 LINK_RE = re.compile(r"(?<!!)\[[^]]+\]\(([^)]+)\)")
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 PINNED_ACTION_RE = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
+SKILLS_REF_SPEC = "git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref"
+MATRIX_PYTHON_VERSION = "${{ matrix.python-version }}"
 EXPECTED_REFERENCES = {
     "dev-workflow-patterns.md",
     "file-swamp-patterns.md",
@@ -239,6 +241,23 @@ def validate_runtime_trust() -> None:
         fail("unsafe runtime instruction detected:\n" + "\n".join(findings))
 
 
+def python_release(value: str) -> tuple[int, int]:
+    """Parse a major.minor Python release into a comparable tuple."""
+    match = re.fullmatch(r"([0-9]+)\.([0-9]+)", value.strip())
+    if match is None:
+        fail(f"Python version must be a major.minor release: {value!r}")
+    return int(match.group(1)), int(match.group(2))
+
+
+def minimum_python_release() -> tuple[int, int]:
+    """Read the Python floor from pyproject so CI policy tracks packaging metadata."""
+    project = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+    declared = str(object_mapping(project.get("project"), f"{PYPROJECT}: project").get("requires-python", "")).strip()
+    if not re.fullmatch(r">=[0-9]+\.[0-9]+", declared):
+        fail(f"{PYPROJECT}: requires-python must be a simple lower bound")
+    return python_release(declared.removeprefix(">="))
+
+
 def validate_security_contract() -> None:
     text = SECURITY.read_text(encoding="utf-8")
     required = (
@@ -271,10 +290,13 @@ def validate_security_contract() -> None:
     if permissions.get("contents") != "read":
         fail(f"{CI}: workflow permissions must restrict contents to read")
     workflow_env = object_mapping(workflow.get("env"), f"{CI}: env")
-    if workflow_env.get("PYTHON_VERSION") != "3.13":
-        fail(f"{CI}: PYTHON_VERSION must be 3.13")
+    floor = minimum_python_release()
+    if workflow_env.get("PYTHON_VERSION") != f"{floor[0]}.{floor[1]}":
+        fail(f"{CI}: PYTHON_VERSION must track the minimum supported Python declared in pyproject")
     if workflow_env.get("UV_VERSION") != "0.11.30":
         fail(f"{CI}: UV_VERSION must be 0.11.30")
+    if workflow_env.get("SKILLS_REF_SPEC") != SKILLS_REF_SPEC:
+        fail(f"{CI}: SKILLS_REF_SPEC must pin the skills-ref validator to a full commit SHA")
     concurrency = object_mapping(workflow.get("concurrency"), f"{CI}: concurrency")
     if concurrency.get("group") != "${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}":
         fail(f"{CI}: concurrency group must keep event types independent")
@@ -336,12 +358,36 @@ def validate_security_contract() -> None:
         step.get("run") == "uv run --locked ruff format --check scripts .github/scripts" for step in deterministic_steps
     ):
         fail(f"{CI}: deterministic checks must enforce maintainer script formatting")
-    if not any(
-        step.get("run")
-        == "uvx --from git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref skills-ref validate skills/repo-architecture-skill"
-        for step in deterministic_steps
-    ):
-        fail(f"{CI}: deterministic checks must run the pinned skills-ref validator")
+
+    strategy = object_mapping(deterministic_job.get("strategy"), f"{CI}: deterministic job strategy")
+    if strategy.get("fail-fast") != "false":
+        fail(f"{CI}: deterministic matrix must report every Python release instead of cancelling siblings")
+    matrix = object_mapping(strategy.get("matrix"), f"{CI}: deterministic job strategy matrix")
+    raw_versions = matrix.get("python-version")
+    if not isinstance(raw_versions, list) or not raw_versions or not all(isinstance(v, str) for v in raw_versions):
+        fail(f"{CI}: deterministic job must declare a non-empty python-version matrix of release strings")
+    releases = [python_release(version) for version in raw_versions]
+    if len(set(releases)) != len(releases):
+        fail(f"{CI}: deterministic matrix must not repeat a Python release")
+    if floor not in releases:
+        fail(f"{CI}: deterministic matrix must test the minimum supported Python {floor[0]}.{floor[1]}")
+    if max(releases) <= floor:
+        fail(f"{CI}: deterministic matrix must also test a Python newer than the {floor[0]}.{floor[1]} floor")
+    deterministic_env = object_mapping(deterministic_job.get("env"), f"{CI}: deterministic job env")
+    if deterministic_env.get("PYTHON_VERSION") != MATRIX_PYTHON_VERSION:
+        fail(f"{CI}: deterministic job must derive PYTHON_VERSION from its matrix")
+
+    skills_ref_steps = [step for step in deterministic_steps if "skills-ref validate" in str(step.get("run", ""))]
+    if len(skills_ref_steps) != 1:
+        fail(f"{CI}: deterministic checks must run the skills-ref validator exactly once")
+    skills_ref_run = str(skills_ref_steps[0]["run"])
+    expected_skills_ref = 'uvx --from "${SKILLS_REF_SPEC}" skills-ref validate skills/repo-architecture-skill'
+    if expected_skills_ref not in skills_ref_run:
+        fail(f"{CI}: deterministic checks must invoke skills-ref through the pinned SKILLS_REF_SPEC")
+    if not re.search(r"^MAX_ATTEMPTS=([2-9]|[1-9][0-9]+)$", skills_ref_run, re.MULTILINE):
+        fail(f"{CI}: deterministic checks must bound skills-ref retries to a finite attempt count")
+    if "exit 1" not in skills_ref_run:
+        fail(f"{CI}: deterministic checks must still fail once skills-ref retries are exhausted")
 
     dependabot = yaml.safe_load(DEPENDABOT.read_text(encoding="utf-8"))
     if not isinstance(dependabot, dict) or not isinstance(dependabot.get("updates"), list):
@@ -611,6 +657,16 @@ def self_test() -> None:
     assert not secret_types("tokens should be redacted")
     assert DANGEROUS_RUNTIME_PATTERNS[0][1].search("git reset --hard")
     assert DANGEROUS_RUNTIME_PATTERNS[4][1].search("cat .env")
+    assert python_release("3.14") == (3, 14)
+    assert minimum_python_release() == python_release("3.13")
+    assert sorted(python_release(version) for version in ("3.14", "3.13")) == [(3, 13), (3, 14)]
+    for rejected in ("3", "3.13.1", "latest", ""):
+        try:
+            python_release(rejected)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"non major.minor Python versions must fail: {rejected!r}")
     print("PASS: validator self-tests")
 
 

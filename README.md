@@ -256,6 +256,8 @@ no Python or uv runtime dependency.
 Run the deterministic suite:
 
 ```bash
+uv run --locked ruff check scripts .github/scripts
+uv run --locked ruff format --check scripts .github/scripts
 uv run --locked python scripts/validate.py
 uvx --from git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref skills-ref validate skills/repo-architecture-skill
 uv run --locked python scripts/validate.py --self-test
@@ -265,8 +267,15 @@ uv run --locked python .github/scripts/check-portability.py
 uv run --locked python scripts/verify-urls.py --self-test
 uv run --locked python scripts/check-expiry.py --self-test
 uv run --locked python scripts/check-expiry.py
-uv run --locked ruff check scripts .github/scripts
-uv run --locked ruff format --check scripts .github/scripts
+```
+
+Lint and format checks run first so a style failure surfaces in seconds
+instead of after the full suite. CI repeats this suite on every Python release
+that `requires-python` admits, so pass an explicit interpreter to reproduce a
+specific matrix cell locally:
+
+```bash
+uv run --locked --python 3.13 ruff check scripts .github/scripts
 ```
 
 External URL checks are intentionally separate because they depend on network
@@ -276,7 +285,8 @@ and provider state:
 uv run --locked python scripts/verify-urls.py
 ```
 
-CI runs deterministic checks on pull requests, freshness checks on every lane,
+CI runs deterministic checks on pull requests across a Python matrix that covers
+every release admitted by `requires-python`, freshness checks on every lane,
 and live external monitoring only on schedule or manual dispatch.
 Runtime-specific behavior remains a separate, non-blocking certification
 activity.
