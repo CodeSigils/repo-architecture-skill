@@ -25,12 +25,18 @@ updates:
       - "dependencies"
       - "python:uv"
     groups:
-      uv-maintenance:
+      ruff-minor-review:
         patterns:
-          - "*"
-        exclude-patterns:
           - "ruff"
+        update-types:
+          - "minor"
+      ty-minor-review:
+        patterns:
           - "ty"
         update-types:
           - "minor"
+      uv-maintenance:
+        patterns:
+          - "*"
+        update-types:
           - "patch"
