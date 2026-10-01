@@ -8,6 +8,9 @@ set -e
 echo "=== pre-commit: ruff check ==="
 uv run --locked ruff check scripts .github/scripts
 
+echo "=== pre-commit: ruff format ==="
+uv run --locked ruff format --check scripts .github/scripts
+
 echo "=== pre-commit: check portability ==="
 uv run --locked python .github/scripts/check-portability.py
 
