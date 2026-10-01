@@ -37,8 +37,11 @@ Use for frontmatter parsing, name/path agreement, local-link resolution,
 portability scans, unit and integration tests, fixture-schema validation,
 generated-payload drift, and formatting or linting owned by the repository.
 
-Keep this lane fast and network-independent. Add path filters only when they do
-not create unvalidated gaps. Use concurrency cancellation for superseded runs.
+Keep repository-owned checks fast and deterministic. A pinned validation-tool
+bootstrap may require network access when it cannot be packaged locally; cache
+it where practical, bound retries, fail closed, and keep volatile external
+contract checks out of this lane. Add path filters only when they do not create
+unvalidated gaps. Use concurrency cancellation for superseded runs.
 
 ### Scheduled or manual monitoring lane
 
