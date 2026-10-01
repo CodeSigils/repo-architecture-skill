@@ -28,6 +28,9 @@ updates:
       uv-maintenance:
         patterns:
           - "*"
+        exclude-patterns:
+          - "ruff"
+          - "ty"
         update-types:
           - "minor"
           - "patch"

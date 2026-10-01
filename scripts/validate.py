@@ -64,6 +64,7 @@ NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 PINNED_ACTION_RE = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
 SKILLS_REF_SPEC = "git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref"
 MATRIX_PYTHON_VERSION = "${{ matrix.python-version }}"
+SYNC_COMMAND = "uv sync --locked"
 RUFF_CHECK_COMMAND = "uv run --locked ruff check scripts .github/scripts"
 RUFF_FORMAT_COMMAND = "uv run --locked ruff format --check scripts .github/scripts"
 TYPE_CHECK_COMMAND = "uv run --locked ty check scripts .github/scripts"
@@ -116,6 +117,7 @@ def mapping_list(value: object, context: str) -> list[dict[str, object]]:
 
 def validate_preflight_steps(steps: list[dict[str, object]]) -> None:
     required_commands = (
+        SYNC_COMMAND,
         RUFF_CHECK_COMMAND,
         RUFF_FORMAT_COMMAND,
         TYPE_CHECK_COMMAND,
@@ -127,8 +129,9 @@ def validate_preflight_steps(steps: list[dict[str, object]]) -> None:
         if len(matches) != 1:
             fail(f"{CI}: deterministic checks must run exactly one {command!r} step")
         positions.append(matches[0])
-    if positions != sorted(positions):
-        fail(f"{CI}: lint, formatting, and type checks must precede canonical validation")
+    expected_positions = list(range(positions[0], positions[0] + len(required_commands)))
+    if positions != expected_positions:
+        fail(f"{CI}: sync, lint, formatting, type checks, and canonical validation must be contiguous")
 
 
 def parse_skill(path: Path) -> tuple[dict[str, object], str]:
@@ -430,6 +433,10 @@ def validate_security_contract() -> None:
             fail(f"{DEPENDABOT}: {ecosystem} maintenance group must match all dependencies")
         if maintenance.get("update-types") != ["minor", "patch"]:
             fail(f"{DEPENDABOT}: {ecosystem} maintenance group must contain only minor and patch updates")
+        if ecosystem == "uv" and maintenance.get("exclude-patterns") != ["ruff", "ty"]:
+            fail(f"{DEPENDABOT}: uv maintenance must exclude ruff and ty for individual review")
+        if ecosystem == "github-actions" and "exclude-patterns" in maintenance:
+            fail(f"{DEPENDABOT}: GitHub Actions maintenance must not exclude dependencies")
 
 
 def validate_maintainer_environment() -> None:
@@ -684,16 +691,20 @@ def self_test() -> None:
         else:
             raise AssertionError(f"non major.minor Python versions must fail: {rejected!r}")
     preflight_steps: list[dict[str, object]] = [
+        {"run": SYNC_COMMAND},
         {"run": RUFF_CHECK_COMMAND},
         {"run": RUFF_FORMAT_COMMAND},
         {"run": TYPE_CHECK_COMMAND},
         {"run": CANONICAL_VALIDATION_COMMAND},
     ]
     validate_preflight_steps(preflight_steps)
-    for invalid_steps in (
+    delayed_preflight_step: dict[str, object] = {"run": "echo delayed-before-preflight"}
+    invalid_step_sets: tuple[list[dict[str, object]], ...] = (
         [step for step in preflight_steps if step["run"] != TYPE_CHECK_COMMAND],
         [preflight_steps[1], preflight_steps[0], *preflight_steps[2:]],
-    ):
+        [preflight_steps[0], delayed_preflight_step, *preflight_steps[1:]],
+    )
+    for invalid_steps in invalid_step_sets:
         try:
             validate_preflight_steps(invalid_steps)
         except ValueError:
