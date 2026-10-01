@@ -36,14 +36,38 @@ reviews the diff and green checks before merging.
 
 Dependabot checks both ecosystems weekly:
 
-- GitHub Actions updates are grouped under `actions-maintenance`;
-- UV development updates other than Ruff and ty are grouped under
-  `uv-maintenance`;
-- only minor and patch updates are grouped; Ruff and ty are excluded because
-  their zero-major minor releases receive individual review;
+- GitHub Actions updates are grouped under `actions-maintenance`, which accepts
+  minor and patch updates;
+- UV patch updates are grouped under `uv-maintenance`;
+- UV minor updates for Ruff and ty are isolated under `ruff-minor-review` and
+  `ty-minor-review`, because their zero-major minor releases are the ones that
+  break the locked toolchain contract;
 - major updates remain separate for manual review;
 - each ecosystem is capped at two open pull requests;
 - labels identify dependency, Python/UV, and GitHub Actions changes.
+
+The UV groups partition the update types rather than relying on group
+resolution order: every group accepts a disjoint set of `update-types`, so a
+given update matches at most one group no matter which group Dependabot
+considers first. That matters because the official documentation states that a
+dependency joins the first group it matches, while the updater implements
+most-specific-match. Disjoint update types make the documented and the
+implemented behavior indistinguishable for this configuration.
+
+`exclude-patterns` is deliberately unused. Excluding a dependency from a group
+does not skip it: the dependency becomes ungrouped and still receives its own
+pull request, including for major updates, which bypass the group's
+`update-types` filter entirely. Exclusion would therefore have doubled the
+review load instead of reducing it.
+
+The two-pull-request cap bounds concurrent open pull requests, not the rate at
+which they arrive. Each ecosystem entry carries its own cap, shared across its
+grouped and ungrouped pull requests; a group consumes one slot. When the cap is
+reached Dependabot opens nothing further and re-evaluates on the next
+scheduled run, so there is no backlog. A newer release arriving while a pull
+request is open supersedes it, closing the old pull request and opening a new
+one at the same count, which is why a tool that releases weekly can still leave
+a pull request waiting indefinitely.
 
 The repository's `validate` workflow has two lanes:
 
@@ -98,4 +122,5 @@ Native Dependabot auto-merge is disabled.
 - [Workflow permissions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)
 - [Triggering workflows](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run)
 - [Dependabot pull-request grouping](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates)
+- [Dependabot configuration options reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference)
 - [Dependabot on GitHub Actions](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-on-actions)

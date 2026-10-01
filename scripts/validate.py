@@ -69,6 +69,14 @@ RUFF_CHECK_COMMAND = "uv run --locked ruff check scripts .github/scripts"
 RUFF_FORMAT_COMMAND = "uv run --locked ruff format --check scripts .github/scripts"
 TYPE_CHECK_COMMAND = "uv run --locked ty check scripts .github/scripts"
 CANONICAL_VALIDATION_COMMAND = "uv run --locked python scripts/validate.py"
+DEPENDABOT_GROUP_SHAPE = {
+    "github-actions": {"actions-maintenance": (["*"], ["minor", "patch"])},
+    "uv": {
+        "ruff-minor-review": (["ruff"], ["minor"]),
+        "ty-minor-review": (["ty"], ["minor"]),
+        "uv-maintenance": (["*"], ["patch"]),
+    },
+}
 EXPECTED_REFERENCES = {
     "dev-workflow-patterns.md",
     "file-swamp-patterns.md",
@@ -113,6 +121,23 @@ def mapping_list(value: object, context: str) -> list[dict[str, object]]:
     if not isinstance(value, list) or not value:
         fail(f"{context}: expected a non-empty list")
     return [object_mapping(item, context) for item in value]
+
+
+def validate_dependabot_groups(ecosystem: str, groups: dict[str, object]) -> None:
+    expected_groups = DEPENDABOT_GROUP_SHAPE[ecosystem]
+    if set(groups) != set(expected_groups):
+        fail(f"{DEPENDABOT}: {ecosystem} must declare exactly the groups {sorted(expected_groups)}")
+    for group_name, (patterns, update_types) in expected_groups.items():
+        group = object_mapping(groups[group_name], f"{DEPENDABOT}: {ecosystem}.{group_name}")
+        if group.get("patterns") != patterns:
+            fail(f"{DEPENDABOT}: {ecosystem}.{group_name} must match exactly {patterns}")
+        if group.get("update-types") != update_types:
+            fail(f"{DEPENDABOT}: {ecosystem}.{group_name} must contain only {' and '.join(update_types)} updates")
+        if "exclude-patterns" in group:
+            fail(
+                f"{DEPENDABOT}: {ecosystem}.{group_name} must not exclude dependencies, because exclusion "
+                "ungroups a dependency instead of skipping it"
+            )
 
 
 def validate_preflight_steps(steps: list[dict[str, object]]) -> None:
@@ -427,16 +452,7 @@ def validate_security_contract() -> None:
         if set(entry.get("labels", [])) != expected_labels:
             fail(f"{DEPENDABOT}: {ecosystem} labels must be {sorted(expected_labels)}")
         groups = object_mapping(entry.get("groups"), f"{DEPENDABOT}: {ecosystem}.groups")
-        group_name = "actions-maintenance" if ecosystem == "github-actions" else "uv-maintenance"
-        maintenance = object_mapping(groups.get(group_name), f"{DEPENDABOT}: {ecosystem}.{group_name}")
-        if maintenance.get("patterns") != ["*"]:
-            fail(f"{DEPENDABOT}: {ecosystem} maintenance group must match all dependencies")
-        if maintenance.get("update-types") != ["minor", "patch"]:
-            fail(f"{DEPENDABOT}: {ecosystem} maintenance group must contain only minor and patch updates")
-        if ecosystem == "uv" and maintenance.get("exclude-patterns") != ["ruff", "ty"]:
-            fail(f"{DEPENDABOT}: uv maintenance must exclude ruff and ty for individual review")
-        if ecosystem == "github-actions" and "exclude-patterns" in maintenance:
-            fail(f"{DEPENDABOT}: GitHub Actions maintenance must not exclude dependencies")
+        validate_dependabot_groups(ecosystem, groups)
 
 
 def validate_maintainer_environment() -> None:
@@ -711,6 +727,30 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError("invalid deterministic preflight must fail")
+
+    def conforming_groups(ecosystem: str) -> dict[str, object]:
+        return {
+            name: {"patterns": patterns, "update-types": update_types}
+            for name, (patterns, update_types) in DEPENDABOT_GROUP_SHAPE[ecosystem].items()
+        }
+
+    for ecosystem in DEPENDABOT_GROUP_SHAPE:
+        validate_dependabot_groups(ecosystem, conforming_groups(ecosystem))
+    excluded_groups = conforming_groups("uv")
+    excluded_groups["uv-maintenance"] = {"patterns": ["*"], "update-types": ["patch"], "exclude-patterns": ["ruff"]}
+    invalid_group_shapes: tuple[tuple[str, dict[str, object]], ...] = (
+        ("github-actions", {"actions-maintenance": {"patterns": ["*"], "update-types": ["minor"]}}),
+        ("uv", {"uv-maintenance": {"patterns": ["*"], "update-types": ["patch"]}}),
+        ("uv", conforming_groups("uv") | {"unexpected-group": {"patterns": ["*"], "update-types": ["patch"]}}),
+        ("uv", excluded_groups),
+    )
+    for ecosystem, groups in invalid_group_shapes:
+        try:
+            validate_dependabot_groups(ecosystem, groups)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"invalid Dependabot groups must fail: {ecosystem}")
     print("PASS: validator self-tests")
 
 
