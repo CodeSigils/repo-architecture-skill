@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import subprocess
@@ -63,6 +64,10 @@ NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 PINNED_ACTION_RE = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
 SKILLS_REF_SPEC = "git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref"
 MATRIX_PYTHON_VERSION = "${{ matrix.python-version }}"
+RUFF_CHECK_COMMAND = "uv run --locked ruff check scripts .github/scripts"
+RUFF_FORMAT_COMMAND = "uv run --locked ruff format --check scripts .github/scripts"
+TYPE_CHECK_COMMAND = "uv run --locked ty check scripts .github/scripts"
+CANONICAL_VALIDATION_COMMAND = "uv run --locked python scripts/validate.py"
 EXPECTED_REFERENCES = {
     "dev-workflow-patterns.md",
     "file-swamp-patterns.md",
@@ -101,6 +106,29 @@ DANGEROUS_RUNTIME_PATTERNS = (
 
 def fail(message: str) -> NoReturn:
     raise ValueError(message)
+
+
+def mapping_list(value: object, context: str) -> list[dict[str, object]]:
+    if not isinstance(value, list) or not value:
+        fail(f"{context}: expected a non-empty list")
+    return [object_mapping(item, context) for item in value]
+
+
+def validate_preflight_steps(steps: list[dict[str, object]]) -> None:
+    required_commands = (
+        RUFF_CHECK_COMMAND,
+        RUFF_FORMAT_COMMAND,
+        TYPE_CHECK_COMMAND,
+        CANONICAL_VALIDATION_COMMAND,
+    )
+    positions: list[int] = []
+    for command in required_commands:
+        matches = [index for index, step in enumerate(steps) if step.get("run") == command]
+        if len(matches) != 1:
+            fail(f"{CI}: deterministic checks must run exactly one {command!r} step")
+        positions.append(matches[0])
+    if positions != sorted(positions):
+        fail(f"{CI}: lint, formatting, and type checks must precede canonical validation")
 
 
 def parse_skill(path: Path) -> tuple[dict[str, object], str]:
@@ -313,10 +341,7 @@ def validate_security_contract() -> None:
         timeout = job.get("timeout-minutes")
         if not isinstance(timeout, str) or not timeout.isdigit() or int(timeout) <= 0:
             fail(f"{CI}: jobs.{job_name} needs a positive timeout-minutes")
-        raw_steps = job.get("steps")
-        if not isinstance(raw_steps, list) or not raw_steps:
-            fail(f"{CI}: jobs.{job_name}.steps must be a non-empty list")
-        steps = [object_mapping(step, f"{CI}: jobs.{job_name}.steps") for step in raw_steps]
+        steps = mapping_list(job.get("steps"), f"{CI}: jobs.{job_name}.steps")
         checkout_steps = [step for step in steps if str(step.get("uses", "")).startswith("actions/checkout@")]
         if len(checkout_steps) != 1:
             fail(f"{CI}: jobs.{job_name} must contain exactly one checkout step")
@@ -341,23 +366,14 @@ def validate_security_contract() -> None:
     monitor_job = object_mapping(jobs["monitor-external-contracts"], f"{CI}: monitor job")
     if monitor_job.get("if") != "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'":
         fail(f"{CI}: external monitoring must be limited to schedule and manual dispatch")
-    monitor_steps = [
-        object_mapping(step, f"{CI}: monitor step") for step in monitor_job["steps"] if isinstance(step, dict)
-    ]
+    monitor_steps = mapping_list(monitor_job.get("steps"), f"{CI}: monitor step")
     freshness_steps = [step for step in monitor_steps if step.get("run") == "python3 scripts/check-expiry.py"]
     if len(freshness_steps) != 1 or freshness_steps[0].get("if") != "${{ !cancelled() }}":
         fail(f"{CI}: scheduled freshness must run independently after URL monitoring")
 
     deterministic_job = object_mapping(jobs["deterministic"], f"{CI}: deterministic job")
-    deterministic_steps = [
-        object_mapping(step, f"{CI}: deterministic step")
-        for step in deterministic_job["steps"]
-        if isinstance(step, dict)
-    ]
-    if not any(
-        step.get("run") == "uv run --locked ruff format --check scripts .github/scripts" for step in deterministic_steps
-    ):
-        fail(f"{CI}: deterministic checks must enforce maintainer script formatting")
+    deterministic_steps = mapping_list(deterministic_job.get("steps"), f"{CI}: deterministic step")
+    validate_preflight_steps(deterministic_steps)
 
     strategy = object_mapping(deterministic_job.get("strategy"), f"{CI}: deterministic job strategy")
     if strategy.get("fail-fast") != "false":
@@ -425,14 +441,14 @@ def validate_maintainer_environment() -> None:
     pins: dict[str, str] = {}
     for dependency in dependencies:
         match = re.fullmatch(
-            r"(pyyaml|ruff)==([0-9]+(?:\.[0-9]+)+(?:[A-Za-z0-9.+-]*))",
+            r"(pyyaml|ruff|ty)==([0-9]+(?:\.[0-9]+)+(?:[A-Za-z0-9.+-]*))",
             dependency,
         )
         if match is None or match.group(1) in pins:
             fail(f"{PYPROJECT}: dev dependencies must be unique exact pins")
         pins[match.group(1)] = match.group(2)
-    if set(pins) != {"pyyaml", "ruff"}:
-        fail(f"{PYPROJECT}: dev dependencies must be exactly pyyaml and ruff")
+    if set(pins) != {"pyyaml", "ruff", "ty"}:
+        fail(f"{PYPROJECT}: dev dependencies must be exactly pyyaml, ruff, and ty")
 
     lock = tomllib.loads(UV_LOCK.read_text(encoding="utf-8"))
     packages = lock.get("package", [])
@@ -667,12 +683,32 @@ def self_test() -> None:
             pass
         else:
             raise AssertionError(f"non major.minor Python versions must fail: {rejected!r}")
+    preflight_steps: list[dict[str, object]] = [
+        {"run": RUFF_CHECK_COMMAND},
+        {"run": RUFF_FORMAT_COMMAND},
+        {"run": TYPE_CHECK_COMMAND},
+        {"run": CANONICAL_VALIDATION_COMMAND},
+    ]
+    validate_preflight_steps(preflight_steps)
+    for invalid_steps in (
+        [step for step in preflight_steps if step["run"] != TYPE_CHECK_COMMAND],
+        [preflight_steps[1], preflight_steps[0], *preflight_steps[2:]],
+    ):
+        try:
+            validate_preflight_steps(invalid_steps)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("invalid deterministic preflight must fail")
     print("PASS: validator self-tests")
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
     try:
-        if "--self-test" in sys.argv:
+        if args.self_test:
             self_test()
         else:
             validate_skill()

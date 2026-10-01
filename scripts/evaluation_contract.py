@@ -69,8 +69,13 @@ def load_case_contract(case_dir: Path, case_id: str) -> CaseContract:
     if not isinstance(archetype, str) or not archetype:
         raise TypeError(f"{path}: expected.archetype must be a non-empty string")
     boundaries = object_mapping(expected.get("boundaries"), f"{path}: expected.boundaries")
-    if not boundaries or not all(isinstance(value, str) and value for value in boundaries.values()):
+    if not boundaries:
         raise ValueError(f"{path}: expected.boundaries must contain non-empty string values")
+    typed_boundaries: dict[str, str] = {}
+    for name, value in boundaries.items():
+        if not isinstance(value, str) or not value:
+            raise ValueError(f"{path}: expected.boundaries must contain non-empty string values")
+        typed_boundaries[name] = value
 
     grading = object_mapping(data.get("grading"), f"{path}: grading")
     raw_term_sets = grading.get("recommendation_term_sets")
@@ -90,6 +95,6 @@ def load_case_contract(case_dir: Path, case_id: str) -> CaseContract:
         case_id=case_id,
         fixture_files=fixture_files,
         archetype=archetype,
-        boundaries=boundaries,
+        boundaries=typed_boundaries,
         recommendation_term_sets=tuple(term_sets),
     )

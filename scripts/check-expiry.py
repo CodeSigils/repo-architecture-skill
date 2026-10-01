@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import argparse
 import re
-import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
 
@@ -134,7 +134,10 @@ def run_self_tests() -> int:
 
 
 def main() -> int:
-    if "--self-test" in sys.argv:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+    if args.self_test:
         return run_self_tests()
     today = datetime.now(tz=UTC).date()
     problems: list[str] = []

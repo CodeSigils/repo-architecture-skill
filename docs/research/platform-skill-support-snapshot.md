@@ -1,14 +1,14 @@
 # Platform Skill Support Snapshot
 
-> Refreshed: 2026-07-22
+> Refreshed: 2026-10-01
 >
-> Evidence type: current official documentation review
+> Evidence type: official documentation review retrieved 2026-10-01
 
 ## Sources and Scope
 
-This report separates the portable Agent Skills format from client discovery,
-activation, security, and distribution behavior. It uses current official
-documentation for:
+This dated snapshot separates the portable Agent Skills format from client
+discovery, activation, security, and distribution behavior. Its 2026-10-01
+review uses official documentation for:
 
 - [Agent Skills specification](https://agentskills.io/specification);
 - [OpenAI Codex manual](https://developers.openai.com/codex/codex-manual.md),
@@ -35,7 +35,7 @@ This repository deliberately enforces a narrower baseline of only `name` and
 `description` for its own portable payload. That is repository policy, not a
 claim that the standard forbids other fields.
 
-## Current Client Matrix
+## Client Matrix (reviewed 2026-10-01)
 
 | Client | Native authoring/discovery paths | `.agents/skills` status | Distribution path | Notable behavior |
 | --- | --- | --- | --- | --- |

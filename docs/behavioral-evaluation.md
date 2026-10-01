@@ -42,8 +42,7 @@ An authenticated Codex CLI and network access are required:
 
 ```bash
 uv run --locked python scripts/run-codex-regression.py \
-  --codex-home "$CODEX_HOME" \
-  --expected-codex-version "0.133.0"
+  --codex-home "$CODEX_HOME"
 ```
 
 `--codex-home` must point to a persistent writable Codex home prepared by the
@@ -51,6 +50,15 @@ maintainer. The runner records the path and observed CLI version but never
 reads or prints credential values. `--expected-codex-version` is optional; use
 it when reproducibility requires a pinned CLI, and treat a mismatch as an
 environment failure before interpreting any model result.
+
+For example, reproduce the 2026-07-22 compatibility record with its historical
+CLI version pin:
+
+```bash
+uv run --locked python scripts/run-codex-regression.py \
+  --codex-home "$CODEX_HOME" \
+  --expected-codex-version "0.133.0"
+```
 
 The evaluated agent receives a read-only sandbox. Each run preserves positive
 and negative transcripts, final results, stderr, deterministic grade, runtime

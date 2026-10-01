@@ -15,6 +15,7 @@ Exit code 1 = one or more URLs differs from the manifest.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import tempfile
@@ -217,7 +218,10 @@ def check_self_test() -> None:
 
 
 def main() -> int:
-    if "--self-test" in sys.argv:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args()
+    if args.self_test:
         check_self_test()
         return 0
 

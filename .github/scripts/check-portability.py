@@ -8,6 +8,7 @@ agents (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor).
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -56,6 +57,8 @@ def scan_file(path: Path) -> list[tuple[Path, int, str, str]]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.parse_args()
     if not SKILLS_DIR.is_dir():
         print(f"FAIL: skills directory is missing: {SKILLS_DIR}", file=sys.stderr)
         return 1

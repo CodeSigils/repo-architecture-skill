@@ -47,12 +47,12 @@ The repository's `validate` workflow has two lanes:
 
 1. `deterministic` runs on pushes and pull requests. It uses read-only
    permissions, pinned actions, a pinned UV version, the locked environment,
-   custom repository validation, `skills-ref`, fixture tests, lint, and format
-   checks. It runs once per Python release admitted by `requires-python`, and a
-   matrix cell reports independently instead of cancelling its siblings. Lint
-   and format checks run first so a style failure fails fast, and the live
-   `skills-ref` clone retries bounded transient failures while still failing
-   persistent drift.
+   custom repository validation, `skills-ref`, fixture tests, lint, format, and
+   type checks. It runs for the `requires-python` floor and one newer release,
+   currently 3.13 and 3.14, and a matrix cell reports independently instead of
+   cancelling its siblings. Lint, format, and type checks run first so a
+   preflight failure fails fast, and the live `skills-ref` clone retries bounded
+   transient failures while still failing persistent drift.
 2. `monitor-external-contracts` runs only on the weekly schedule or manual
    dispatch. It checks external evidence URLs and freshness markers. Its URL
    checker retries bounded transient failures but still fails persistent drift.
