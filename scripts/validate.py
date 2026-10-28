@@ -349,8 +349,8 @@ def validate_security_contract() -> None:
     floor = minimum_python_release()
     if workflow_env.get("PYTHON_VERSION") != f"{floor[0]}.{floor[1]}":
         fail(f"{CI}: PYTHON_VERSION must track the minimum supported Python declared in pyproject")
-    if workflow_env.get("UV_VERSION") != "0.11.30":
-        fail(f"{CI}: UV_VERSION must be 0.11.30")
+    if workflow_env.get("UV_VERSION") != "0.13.5":
+        fail(f"{CI}: UV_VERSION must be 0.13.5")
     if workflow_env.get("SKILLS_REF_SPEC") != SKILLS_REF_SPEC:
         fail(f"{CI}: SKILLS_REF_SPEC must pin the skills-ref validator to a full commit SHA")
     concurrency = object_mapping(workflow.get("concurrency"), f"{CI}: concurrency")

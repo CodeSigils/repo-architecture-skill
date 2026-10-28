@@ -1,6 +1,6 @@
 # Automation Bots and Workflow Boundaries
 
-> Reviewed: 2026-09-08
+> Reviewed: 2026-10-28
 >
 > Evidence type: repository configuration plus official GitHub documentation
 
@@ -45,6 +45,14 @@ Dependabot checks both ecosystems weekly:
 - major updates remain separate for manual review;
 - each ecosystem is capped at two open pull requests;
 - labels identify dependency, Python/UV, and GitHub Actions changes.
+
+GitHub now applies a three-day cooldown to ordinary Dependabot version updates
+by default. Security updates remain immediate. This repository intentionally
+uses that platform default rather than duplicating it in `dependabot.yml`.
+The explicit `UV_VERSION` in the workflow is a separate bootstrap-tool pin:
+Dependabot can update the `setup-uv` action, but it does not update an arbitrary
+workflow environment value. It therefore needs a reviewed manual update when a
+new uv release materially affects CI.
 
 The UV groups partition the update types rather than relying on group
 resolution order: every group accepts a disjoint set of `update-types`, so a
