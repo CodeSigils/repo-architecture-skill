@@ -364,6 +364,8 @@ def validate_security_contract() -> None:
         fail(f"{CI}: missing required jobs {sorted(required_jobs - jobs.keys())}")
     for job_name, raw_job in jobs.items():
         job = object_mapping(raw_job, f"{CI}: jobs.{job_name}")
+        if job.get("runs-on") != "ubuntu-26.04":
+            fail(f"{CI}: jobs.{job_name} must pin the runner to ubuntu-26.04")
         if "permissions" in job:
             fail(f"{CI}: jobs.{job_name} must not override workflow permissions")
         timeout = job.get("timeout-minutes")

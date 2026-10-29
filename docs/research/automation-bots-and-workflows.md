@@ -1,8 +1,9 @@
 # Automation Bots and Workflow Boundaries
 
-> Reviewed: 2026-10-28
+> Reviewed: 2026-10-29
 >
-> Evidence type: repository configuration plus official GitHub documentation
+> Evidence type: repository configuration, GitHub runner-image announcements,
+> and official GitHub documentation
 
 This note records what automation can do in this repository and what remains a
 human decision. It is maintainer guidance, not runtime skill content.
@@ -49,10 +50,6 @@ Dependabot checks both ecosystems weekly:
 GitHub now applies a three-day cooldown to ordinary Dependabot version updates
 by default. Security updates remain immediate. This repository intentionally
 uses that platform default rather than duplicating it in `dependabot.yml`.
-The explicit `UV_VERSION` in the workflow is a separate bootstrap-tool pin:
-Dependabot can update the `setup-uv` action, but it does not update an arbitrary
-workflow environment value. It therefore needs a reviewed manual update when a
-new uv release materially affects CI.
 
 The UV groups partition the update types rather than relying on group
 resolution order: every group accepts a disjoint set of `update-types`, so a
@@ -91,6 +88,35 @@ The repository's `validate` workflow has two lanes:
 2. `monitor-external-contracts` runs only on the weekly schedule or manual
    dispatch. It checks external evidence URLs and freshness markers. Its URL
    checker retries bounded transient failures but still fails persistent drift.
+
+## Runner image and bootstrap-tool policy
+
+Both CI jobs explicitly use `ubuntu-26.04`. `ubuntu-latest` is a moving label:
+GitHub announced its transition from Ubuntu 24.04 to 26.04 in November 2026.
+Pinning the supported 26.04 label makes that operating-system baseline visible
+in review and prevents a future `ubuntu-latest` transition from changing CI
+without a repository change. This is an OS-release pin, not an immutable VM
+image pin; GitHub continues to update the 26.04 image. The workflow still
+installs the tested Python and uv versions explicitly rather than relying on
+the runner's preinstalled tools.
+
+The `validate.py` contract enforces `ubuntu-26.04` for every CI job. When the
+runner line changes, update the workflow, this contract, and this note together
+after testing the exact proposed runner label. Do not choose a runner solely
+because its cached tools happen to make a job faster.
+
+The sibling [repo-health-scan automation policy](https://github.com/CodeSigils/repo-health-scan/blob/main/docs/automation-identities.md)
+records the same general least-privilege and review principles. Its exact
+workflow permissions, update limits, and branch-cleanup behavior are specific
+to that repository, so this note remains the authoritative maintenance record
+for `repo-architecture-skill`.
+
+The explicit `UV_VERSION` pin remains a separate manual review boundary.
+Dependabot can update the `setup-uv` action reference, but not an arbitrary
+workflow environment value. Review a new uv release, update the pin, and run
+the locked suite before changing it. The same distinction applies to the
+Python baseline: package metadata owns the minimum supported version, while
+the workflow matrix proves that floor and one newer release.
 
 Merged source branches are deleted by the repository setting. No repository
 workflow creates, approves, merges, rebases, closes, or deletes pull requests.
@@ -132,3 +158,6 @@ Native Dependabot auto-merge is disabled.
 - [Dependabot pull-request grouping](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates)
 - [Dependabot configuration options reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference)
 - [Dependabot on GitHub Actions](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-on-actions)
+- [GitHub-hosted runner images](https://github.com/actions/runner-images)
+- [Ubuntu 26.04 availability announcement](https://github.com/actions/runner-images/issues/14747)
+- [ubuntu-latest transition announcement](https://github.com/actions/runner-images/issues/14748)

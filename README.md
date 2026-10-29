@@ -233,8 +233,8 @@ Maintainer research is preserved as dated evidence, not runtime authority:
   compares current official Agent Skills, Codex, Claude Code, Gemini CLI, and
   Hermes documentation.
 - [automation bots and workflows](docs/research/automation-bots-and-workflows.md)
-  records the repository's Dependabot, workflow-token, trigger, and manual
-  maintainer boundaries.
+  records the repository's Dependabot, workflow-token, trigger, runner-image,
+  bootstrap-tool, and manual-maintainer boundaries.
 
 Refresh volatile claims before using them to change compatibility status or
 runtime guidance. Pinned repository snapshots remain historical provenance; a
