@@ -12,6 +12,21 @@ installable payload.
 - Use `README.md` for installation, layout, and maintainer verification.
 - Treat `docs/` and research notes as evidence, not runtime authority.
 
+## Research routing
+
+Read the relevant note in `docs/research/` before changing a policy that it
+documents. The workflow, configuration, validator, and runtime payload remain
+authoritative; research explains their evidence and maintenance boundary.
+
+- For Dependabot, GitHub Actions, runner, workflow-token, or bot-authored PR
+  changes, read `docs/research/automation-bots-and-workflows.md`.
+- For named agent support, installation, skill discovery, or compatibility
+  claims, read `docs/research/platform-skill-support-snapshot.md`.
+- For payload layout, canonical-source, generated-artifact, or repository-shape
+  decisions, read `docs/research/repository-structure-snapshot.md`.
+
+Use `docs/research/README.md` when the task does not clearly match one route.
+
 Do not recreate a root reference mirror or payload sync step unless a concrete
 distribution consumer requires a generated artifact. Run the deterministic
 verification commands in `README.md` before claiming completion.

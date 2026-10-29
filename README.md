@@ -188,7 +188,7 @@ repo-architecture-skill/
 │   ├── evaluation-adoption-ledger.yaml  # evaluation tracking
 │   ├── evidence-urls.json          # external monitoring contract
 │   ├── portability-contract.md     # compatibility evidence levels and status
-│   └── research/                   # dated maintainer evidence; not shipped
+│   └── research/                   # dated maintainer evidence and task map; not shipped
 ├── evals/
 │   ├── cases/                       # shared behavioral fixture contracts
 │   └── codex/                       # optional model-regression prompts and schema
@@ -226,6 +226,9 @@ artifact and failure mode exist before recommending the corresponding control.
 ## Research provenance
 
 Maintainer research is preserved as dated evidence, not runtime authority:
+
+Start with the [maintainer research map](docs/research/README.md) when a task
+does not clearly identify its evidence source.
 
 - [repository structure snapshot](docs/research/repository-structure-snapshot.md)
   records four public repositories at pinned Git tree objects;
