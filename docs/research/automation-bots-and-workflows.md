@@ -132,13 +132,14 @@ The repository's `validate` workflow has two lanes:
 ## Runner image and bootstrap-tool policy
 
 Both CI jobs explicitly use `ubuntu-26.04`. `ubuntu-latest` is a moving label:
-GitHub announced its transition from Ubuntu 24.04 to 26.04 in November 2026.
-Pinning the supported 26.04 label makes that operating-system baseline visible
-in review and prevents a future `ubuntu-latest` transition from changing CI
-without a repository change. This is an OS-release pin, not an immutable VM
-image pin; GitHub continues to update the 26.04 image. The workflow still
-installs the tested Python and uv versions explicitly rather than relying on
-the runner's preinstalled tools.
+GitHub announced the Ubuntu 24.04-to-26.04 migration in September 2026, with a
+rollout beginning on 2026-10-19 and planned completion by 2026-11-19. Pinning
+the supported 26.04 label makes that operating-system baseline visible in
+review and prevents the `ubuntu-latest` transition from changing CI without a
+repository change. This is an OS-release pin, not an immutable VM image pin;
+GitHub continues to update the 26.04 image. The workflow still installs the
+tested Python and uv versions explicitly rather than relying on the runner's
+preinstalled tools.
 
 The `validate.py` contract enforces `ubuntu-26.04` for every CI job. When the
 runner line changes, update the workflow, this contract, and this note together
