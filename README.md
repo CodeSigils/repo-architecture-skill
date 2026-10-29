@@ -2,8 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/repo-architecture-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/repo-architecture-skill/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/CodeSigils/repo-architecture-skill/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/CodeSigils/repo-architecture-skill/actions/workflows/github-code-scanning/codeql)
 [![Skill format](https://img.shields.io/badge/skill%20format-agentskills.io-blue)](https://agentskills.io/specification)
-[![skills.sh](https://skills.sh/b/codesigils/repo-architecture-skill)](https://skills.sh/codesigils/repo-architecture-skill/repo-architecture-skill)
 
 **Architecture follows the artifact.** This methodology helps an agent design,
 review, and tighten skill repositories without forcing the same structure onto a
@@ -26,9 +26,11 @@ the validation and release controls justified by those boundaries.
 - File-swamp diagnosis based on ownership and consumers rather than universal
   script or reference ratios.
 
-Use `repo-health-and-sync-skill` for general repository health and
-`skill-discovery` for finding third-party skills. This skill focuses specifically
-on the architecture of repositories that create or distribute skills.
+Use [repo-health-scan](https://github.com/CodeSigils/repo-health-scan) for
+general repository health and release readiness, and
+[skill-discovery](https://github.com/CodeSigils/skill-discovery) for finding
+third-party skills. This skill focuses specifically on the architecture of
+repositories that create or distribute skills.
 
 ## What it does in practice
 
@@ -308,7 +310,7 @@ activity.
 
 - [`skill-discovery`](https://github.com/CodeSigils/skill-discovery) — find and
   assess reusable skills.
-- [`repo-health-and-sync-skill`](https://github.com/CodeSigils/repo-health-and-sync-skill)
+- [`repo-health-scan`](https://github.com/CodeSigils/repo-health-scan)
   — audit general repository health and release readiness.
 - [`py-review-skill`](https://github.com/CodeSigils/py-review-skill) — review
   Python code with focused routing and rules.
