@@ -35,8 +35,9 @@ Security and version updates both appear as Dependabot pull requests, but they
 are not interchangeable. Version updates aim to keep dependencies current;
 security updates address known vulnerabilities and normally choose the minimum
 non-vulnerable release. The three-day version-update cooldown and the
-`open-pull-requests-limit` described below do not delay or cap security
-updates.
+`open-pull-requests-limit` described below do not govern security updates.
+Security updates instead have GitHub's separate fixed limit of ten open pull
+requests.
 
 ## Version updates and security updates
 
@@ -93,9 +94,9 @@ The two-pull-request cap bounds concurrent version-update pull requests, not
 the rate at which they arrive. Each ecosystem entry carries its own cap, shared
 across its grouped and ungrouped version-update pull requests; a group consumes
 one slot. When the cap is reached, Dependabot does not open another version
-update until capacity becomes available. It does not apply to security updates.
-Review the open queue rather than assuming that a quiet week means all
-dependencies are current.
+update until capacity becomes available. Security updates use a separate,
+fixed limit of ten open pull requests. Review both queues rather than assuming
+that a quiet week means all dependencies are current.
 
 For GitHub Actions, Dependabot checks action references and reusable-workflow
 references. The immutable SHA pin is therefore maintained as a reviewed
@@ -167,6 +168,10 @@ Native Dependabot auto-merge is disabled.
   policy decision that must name the excluded maintenance responsibility.
 - Grouping reduces review and CI volume; it does not establish that an update
   is safe. Review the diff and green checks before merging.
+- If maintainers leave Dependabot pull requests untouched, GitHub can pause
+  updates after 90 days; it also stops rebasing inactive Dependabot pull
+  requests after 30 days. The paused state and stale queue are operational
+  signals, not evidence that dependencies are current.
 - A successful workflow proves only the checks it actually ran. A skipped
   external-monitor job on a pull request is expected because that lane is
   schedule/manual-only.
@@ -180,10 +185,12 @@ Native Dependabot auto-merge is disabled.
    advisory or release notes, and lockfile effect.
 4. Close stale or unneeded proposals deliberately; do not assume the cap
    represents a complete or queued update inventory.
-5. Confirm merged branches are removed automatically.
-6. Investigate failed or ambiguous checks; do not bypass protection merely to
+5. Check the repository's Dependabot paused state and stale pull-request queue;
+   interact deliberately before the 90-day inactivity threshold.
+6. Confirm merged branches are removed automatically.
+7. Investigate failed or ambiguous checks; do not bypass protection merely to
    clear a queue.
-7. Re-check this note when adding a workflow that writes issues, releases,
+8. Re-check this note when adding a workflow that writes issues, releases,
    attestations, pull requests, branches, or repository settings.
 
 ## Official references
@@ -196,6 +203,8 @@ Native Dependabot auto-merge is disabled.
 - [Dependabot version updates](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-version-updates)
 - [Dependabot security updates](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-security-updates)
 - [Configuring Dependabot security updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates)
+- [Dependabot pull-request limits and errors](https://docs.github.com/en/code-security/reference/supply-chain-security/troubleshoot-dependabot/dependabot-errors)
+- [Dependabot inactivity and automatic pause](https://docs.github.com/en/code-security/reference/supply-chain-security/troubleshoot-dependabot/dependabot-updates-stopped)
 - [Dependabot configuration options reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference)
 - [Dependabot on GitHub Actions](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-on-actions)
 - [GitHub-hosted runner images](https://github.com/actions/runner-images)

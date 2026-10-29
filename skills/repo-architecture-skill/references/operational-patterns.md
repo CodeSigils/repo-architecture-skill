@@ -29,6 +29,27 @@ changes behind explicit policy and human approval unless a separate threat-model
 review justifies otherwise. Grouping dependency updates reduces review volume;
 it does not establish that an update is safe.
 
+### Dependabot-aware architecture audit
+
+When a repository uses Dependabot, inventory dependency manifests, lockfiles,
+workflow action references, and their directories before recommending changes.
+Declare the update ecosystems from that inventory rather than guessing from the
+primary language. Treat scheduled version updates, vulnerability alerts, and
+security-update pull requests as separate controls: they have different
+triggers, grouping choices, and queue limits.
+
+For a monorepo, use multiple directories and cross-directory grouping only when
+the packages share an ecosystem and a dependency version must move together.
+Otherwise, keep proposals scoped to the affected package boundary. Record the
+owner and review rule for any `ignore`, `allow`, security-grouping, or
+auto-merge setting. Do not recommend auto-merge merely because updates are
+grouped or CI is green.
+
+Make the maintenance lane observable. A repository with an unreviewed bot queue
+can pause Dependabot updates or stop rebasing stale pull requests; the
+maintainer routine should therefore inspect open Dependabot pull requests and
+the paused state, not only failed CI.
+
 ## Execution lanes
 
 ### Deterministic pull-request lane
