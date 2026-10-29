@@ -20,6 +20,24 @@ The `github-actions[bot]` identity is the execution identity for workflow jobs,
 not evidence that a workflow has broad write authority. Effective permissions
 come from the workflow `permissions` block and any job-level override.
 
+## Dependabot services and current posture
+
+GitHub exposes three related Dependabot services with different evidence and
+controls:
+
+| Service | Trigger and purpose | Current repository posture |
+| --- | --- | --- |
+| Alerts | GitHub detects a known vulnerable dependency | Review from the Security tab; an alert is evidence to investigate, not a merge instruction. |
+| Security updates | An alert can produce a pull request that moves to the minimum version that resolves the vulnerability | Enabled and not paused, checked through the repository API on 2026-10-29. Review the advisory, the resulting lockfile, and the tests. |
+| Version updates | A scheduled `dependabot.yml` check proposes newer allowed versions | Enabled for `github-actions` and `uv`; the configuration below is authoritative for schedule, grouping, labels, and the version-update PR cap. |
+
+Security and version updates both appear as Dependabot pull requests, but they
+are not interchangeable. Version updates aim to keep dependencies current;
+security updates address known vulnerabilities and normally choose the minimum
+non-vulnerable release. The three-day version-update cooldown and the
+`open-pull-requests-limit` described below do not delay or cap security
+updates.
+
 ## Version updates and security updates
 
 Ordinary Dependabot version updates follow this repository's weekly schedule,
@@ -28,7 +46,7 @@ maintainer toolchain current but do not by themselves indicate a vulnerability.
 
 Dependabot security updates are advisory-driven responses to known vulnerable
 dependencies. Do not assume they arrive on the weekly schedule or are governed
-by the same grouping behavior as ordinary version updates. Treat the advisory,
+by the same configuration as ordinary version updates. Treat the advisory,
 affected dependency, lockfile change, and test result as separate review
 evidence. This repository does not auto-merge either type: a maintainer still
 reviews the diff and green checks before merging.
@@ -47,17 +65,23 @@ Dependabot checks both ecosystems weekly:
 - each ecosystem is capped at two open pull requests;
 - labels identify dependency, Python/UV, and GitHub Actions changes.
 
+The groups in this file apply to version updates. A security-update group would
+need an explicit `applies-to: security-updates` rule or a repository/organization
+security-update setting; neither should be inferred from the version groups.
+If grouped security updates are considered later, decide first whether combining
+multiple fixes would make advisory review harder, then document the setting and
+its owner here.
+
 GitHub now applies a three-day cooldown to ordinary Dependabot version updates
 by default. Security updates remain immediate. This repository intentionally
 uses that platform default rather than duplicating it in `dependabot.yml`.
 
-The UV groups partition the update types rather than relying on group
-resolution order: every group accepts a disjoint set of `update-types`, so a
-given update matches at most one group no matter which group Dependabot
-considers first. That matters because the official documentation states that a
-dependency joins the first group it matches, while the updater implements
-most-specific-match. Disjoint update types make the documented and the
-implemented behavior indistinguishable for this configuration.
+The UV groups partition the update types rather than relying on group order:
+every group accepts a disjoint set of `update-types`, so a given update matches
+at most one group. GitHub assigns an update that could match several groups to
+the first matching group. Keeping the rules disjoint makes that ordering
+irrelevant here and preserves the intended isolated review of Ruff and ty
+minor releases.
 
 `exclude-patterns` is deliberately unused. Excluding a dependency from a group
 does not skip it: the dependency becomes ungrouped and still receives its own
@@ -65,14 +89,20 @@ pull request, including for major updates, which bypass the group's
 `update-types` filter entirely. Exclusion would therefore have doubled the
 review load instead of reducing it.
 
-The two-pull-request cap bounds concurrent open pull requests, not the rate at
-which they arrive. Each ecosystem entry carries its own cap, shared across its
-grouped and ungrouped pull requests; a group consumes one slot. When the cap is
-reached Dependabot opens nothing further and re-evaluates on the next
-scheduled run, so there is no backlog. A newer release arriving while a pull
-request is open supersedes it, closing the old pull request and opening a new
-one at the same count, which is why a tool that releases weekly can still leave
-a pull request waiting indefinitely.
+The two-pull-request cap bounds concurrent version-update pull requests, not
+the rate at which they arrive. Each ecosystem entry carries its own cap, shared
+across its grouped and ungrouped version-update pull requests; a group consumes
+one slot. When the cap is reached, Dependabot does not open another version
+update until capacity becomes available. It does not apply to security updates.
+Review the open queue rather than assuming that a quiet week means all
+dependencies are current.
+
+For GitHub Actions, Dependabot checks action references and reusable-workflow
+references. The immutable SHA pin is therefore maintained as a reviewed
+dependency update: inspect the version comment, changed SHA, release notes,
+and resulting workflow behavior together. The `UV_VERSION` environment value
+is different because it is an ordinary workflow scalar, not a recognized
+dependency reference; Dependabot will not maintain it.
 
 The repository's `validate` workflow has two lanes:
 
@@ -132,6 +162,9 @@ Native Dependabot auto-merge is disabled.
   exceptions.
 - Dependabot pull-request workflows should be treated as untrusted dependency
   changes. They must not receive ordinary repository secrets by default.
+- `allow` rules narrow which dependencies are considered and `ignore` rules
+  take precedence when both match. Neither is present here: adding either is a
+  policy decision that must name the excluded maintenance responsibility.
 - Grouping reduces review and CI volume; it does not establish that an update
   is safe. Review the diff and green checks before merging.
 - A successful workflow proves only the checks it actually ran. A skipped
@@ -141,13 +174,16 @@ Native Dependabot auto-merge is disabled.
 ## Maintainer routine
 
 1. Review Dependabot pull requests weekly.
-2. Merge narrow, green dependency-only updates after inspecting the diff.
-3. Close superseded or stale proposals when a newer grouped update replaces
-   them.
-4. Confirm merged branches are removed automatically.
-5. Investigate failed or ambiguous checks; do not bypass protection merely to
+2. Classify each proposal as an alert follow-up, security update, or version
+   update before applying the corresponding review standard.
+3. Merge narrow, green dependency-only updates after inspecting the diff,
+   advisory or release notes, and lockfile effect.
+4. Close stale or unneeded proposals deliberately; do not assume the cap
+   represents a complete or queued update inventory.
+5. Confirm merged branches are removed automatically.
+6. Investigate failed or ambiguous checks; do not bypass protection merely to
    clear a queue.
-6. Re-check this note when adding a workflow that writes issues, releases,
+7. Re-check this note when adding a workflow that writes issues, releases,
    attestations, pull requests, branches, or repository settings.
 
 ## Official references
@@ -156,6 +192,10 @@ Native Dependabot auto-merge is disabled.
 - [Workflow permissions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)
 - [Triggering workflows](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run)
 - [Dependabot pull-request grouping](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates)
+- [Dependabot services quickstart](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/dependabot-quickstart)
+- [Dependabot version updates](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-version-updates)
+- [Dependabot security updates](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-security-updates)
+- [Configuring Dependabot security updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates)
 - [Dependabot configuration options reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference)
 - [Dependabot on GitHub Actions](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-on-actions)
 - [GitHub-hosted runner images](https://github.com/actions/runner-images)
