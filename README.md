@@ -26,9 +26,11 @@ the validation and release controls justified by those boundaries.
 - File-swamp diagnosis based on ownership and consumers rather than universal
   script or reference ratios.
 
-Use `repo-health-and-sync-skill` for general repository health and
-`skill-discovery` for finding third-party skills. This skill focuses specifically
-on the architecture of repositories that create or distribute skills.
+Use [repo-health-scan](https://github.com/CodeSigils/repo-health-scan) for
+general repository health and release readiness, and
+[skill-discovery](https://github.com/CodeSigils/skill-discovery) for finding
+third-party skills. This skill focuses specifically on the architecture of
+repositories that create or distribute skills.
 
 ## What it does in practice
 
@@ -308,7 +310,7 @@ activity.
 
 - [`skill-discovery`](https://github.com/CodeSigils/skill-discovery) — find and
   assess reusable skills.
-- [`repo-health-and-sync-skill`](https://github.com/CodeSigils/repo-health-and-sync-skill)
+- [`repo-health-scan`](https://github.com/CodeSigils/repo-health-scan)
   — audit general repository health and release readiness.
 - [`py-review-skill`](https://github.com/CodeSigils/py-review-skill) — review
   Python code with focused routing and rules.
