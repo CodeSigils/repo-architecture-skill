@@ -56,6 +56,8 @@ reviews the diff and green checks before merging.
 
 Dependabot checks both ecosystems weekly:
 
+- both checks run Monday at 08:00 UTC, giving maintainers a predictable review
+  window;
 - GitHub Actions updates are grouped under `actions-maintenance`, which accepts
   minor and patch updates;
 - UV patch updates are grouped under `uv-maintenance`;
@@ -65,6 +67,13 @@ Dependabot checks both ecosystems weekly:
 - major updates remain separate for manual review;
 - each ecosystem is capped at two open pull requests;
 - labels identify dependency, Python/UV, and GitHub Actions changes.
+
+`validate.py` enforces the complete reviewed `dependabot.yml` shape: the two
+root directories, Monday schedule, queue caps, labels, and version-update group
+rules. It rejects unreviewed filters, target branches, registries, cooldowns,
+multi-ecosystem groups, and security-update groups. Any of those can be valid
+in a different repository, but here each changes the maintenance or security
+policy and needs an intentional validator and documentation update.
 
 The groups in this file apply to version updates. A security-update group would
 need an explicit `applies-to: security-updates` rule or a repository/organization
@@ -151,7 +160,11 @@ the workflow matrix proves that floor and one newer release.
 
 Merged source branches are deleted by the repository setting. No repository
 workflow creates, approves, merges, rebases, closes, or deletes pull requests.
-Native Dependabot auto-merge is disabled.
+Repository rules require every change to `main` to arrive through a pull request
+with the `deterministic (3.13)` and `deterministic (3.14)` checks passing. The
+repository-wide auto-merge feature is disabled. The ruleset deliberately
+requires no approving review count because this is a small maintainer project,
+but a human still decides whether and when to merge each reviewed pull request.
 
 ## Important GitHub behavior
 

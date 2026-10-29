@@ -4,6 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     open-pull-requests-limit: 2
     labels:
       - "dependencies"
@@ -20,6 +23,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     open-pull-requests-limit: 2
     labels:
       - "dependencies"
