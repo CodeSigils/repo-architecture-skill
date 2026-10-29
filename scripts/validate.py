@@ -77,6 +77,20 @@ DEPENDABOT_GROUP_SHAPE = {
         "uv-maintenance": (["*"], ["patch"]),
     },
 }
+DEPENDABOT_SCHEDULE = {
+    "interval": "weekly",
+    "day": "monday",
+    "time": "08:00",
+    "timezone": "Etc/UTC",
+}
+DEPENDABOT_ENTRY_KEYS = {
+    "package-ecosystem",
+    "directory",
+    "schedule",
+    "open-pull-requests-limit",
+    "labels",
+    "groups",
+}
 EXPECTED_REFERENCES = {
     "dev-workflow-patterns.md",
     "file-swamp-patterns.md",
@@ -129,15 +143,47 @@ def validate_dependabot_groups(ecosystem: str, groups: dict[str, object]) -> Non
         fail(f"{DEPENDABOT}: {ecosystem} must declare exactly the groups {sorted(expected_groups)}")
     for group_name, (patterns, update_types) in expected_groups.items():
         group = object_mapping(groups[group_name], f"{DEPENDABOT}: {ecosystem}.{group_name}")
+        if set(group) != {"patterns", "update-types"}:
+            fail(
+                f"{DEPENDABOT}: {ecosystem}.{group_name} must contain only patterns and update-types; "
+                "security-update grouping needs a separate reviewed policy"
+            )
         if group.get("patterns") != patterns:
             fail(f"{DEPENDABOT}: {ecosystem}.{group_name} must match exactly {patterns}")
         if group.get("update-types") != update_types:
             fail(f"{DEPENDABOT}: {ecosystem}.{group_name} must contain only {' and '.join(update_types)} updates")
-        if "exclude-patterns" in group:
-            fail(
-                f"{DEPENDABOT}: {ecosystem}.{group_name} must not exclude dependencies, because exclusion "
-                "ungroups a dependency instead of skipping it"
-            )
+
+
+def validate_dependabot_configuration(dependabot: object) -> None:
+    """Keep the reviewed Dependabot policy from drifting through extra options."""
+    config = object_mapping(dependabot, str(DEPENDABOT))
+    if set(config) != {"version", "updates"} or config.get("version") != 2:
+        fail(f"{DEPENDABOT}: must contain only version 2 and updates")
+    updates = config.get("updates")
+    if not isinstance(updates, list) or not all(isinstance(entry, dict) for entry in updates):
+        fail(f"{DEPENDABOT}: updates must be a list of mappings")
+    ecosystems = {entry.get("package-ecosystem") for entry in updates}
+    if ecosystems != {"github-actions", "uv"} or len(updates) != len(ecosystems):
+        fail(f"{DEPENDABOT}: must have exactly one github-actions and one uv entry")
+    for entry in updates:
+        ecosystem = entry["package-ecosystem"]
+        if set(entry) != DEPENDABOT_ENTRY_KEYS:
+            fail(f"{DEPENDABOT}: {ecosystem} must use only the reviewed scheduling, queue, label, and group options")
+        if entry.get("directory") != "/":
+            fail(f"{DEPENDABOT}: {ecosystem} must monitor the repository root")
+        schedule = object_mapping(entry.get("schedule"), f"{DEPENDABOT}: {ecosystem}.schedule")
+        if schedule != DEPENDABOT_SCHEDULE:
+            fail(f"{DEPENDABOT}: {ecosystem} must run at the reviewed weekly Monday 08:00 UTC cadence")
+        if entry.get("open-pull-requests-limit") != 2:
+            fail(f"{DEPENDABOT}: {ecosystem} must cap open PRs at 2")
+        expected_labels = {
+            "github-actions": {"dependencies", "github_actions"},
+            "uv": {"dependencies", "python:uv"},
+        }[ecosystem]
+        if set(entry.get("labels", [])) != expected_labels:
+            fail(f"{DEPENDABOT}: {ecosystem} labels must be {sorted(expected_labels)}")
+        groups = object_mapping(entry.get("groups"), f"{DEPENDABOT}: {ecosystem}.groups")
+        validate_dependabot_groups(ecosystem, groups)
 
 
 def validate_preflight_steps(steps: list[dict[str, object]]) -> None:
@@ -435,26 +481,7 @@ def validate_security_contract() -> None:
     if "exit 1" not in skills_ref_run:
         fail(f"{CI}: deterministic checks must still fail once skills-ref retries are exhausted")
 
-    dependabot = yaml.safe_load(DEPENDABOT.read_text(encoding="utf-8"))
-    if not isinstance(dependabot, dict) or not isinstance(dependabot.get("updates"), list):
-        fail(f"{DEPENDABOT}: updates must be a list")
-    if not all(isinstance(entry, dict) for entry in dependabot["updates"]):
-        fail(f"{DEPENDABOT}: every update must be a mapping")
-    ecosystems = {entry.get("package-ecosystem") for entry in dependabot["updates"]}
-    if ecosystems != {"github-actions", "uv"}:
-        fail(f"{DEPENDABOT}: must monitor github-actions and uv")
-    for entry in dependabot["updates"]:
-        ecosystem = entry["package-ecosystem"]
-        if entry.get("open-pull-requests-limit") != 2:
-            fail(f"{DEPENDABOT}: {ecosystem} must cap open PRs at 2")
-        expected_labels = {
-            "github-actions": {"dependencies", "github_actions"},
-            "uv": {"dependencies", "python:uv"},
-        }[ecosystem]
-        if set(entry.get("labels", [])) != expected_labels:
-            fail(f"{DEPENDABOT}: {ecosystem} labels must be {sorted(expected_labels)}")
-        groups = object_mapping(entry.get("groups"), f"{DEPENDABOT}: {ecosystem}.groups")
-        validate_dependabot_groups(ecosystem, groups)
+    validate_dependabot_configuration(yaml.safe_load(DEPENDABOT.read_text(encoding="utf-8")))
 
 
 def validate_maintainer_environment() -> None:
@@ -736,6 +763,42 @@ def self_test() -> None:
             for name, (patterns, update_types) in DEPENDABOT_GROUP_SHAPE[ecosystem].items()
         }
 
+    def conforming_dependabot_configuration() -> dict[str, object]:
+        entries: list[dict[str, object]] = []
+        for ecosystem, labels in (
+            ("github-actions", ["dependencies", "github_actions"]),
+            ("uv", ["dependencies", "python:uv"]),
+        ):
+            entries.append(
+                {
+                    "package-ecosystem": ecosystem,
+                    "directory": "/",
+                    "schedule": dict(DEPENDABOT_SCHEDULE),
+                    "open-pull-requests-limit": 2,
+                    "labels": labels,
+                    "groups": conforming_groups(ecosystem),
+                }
+            )
+        return {"version": 2, "updates": entries}
+
+    validate_dependabot_configuration(conforming_dependabot_configuration())
+    invalid_dependabot_configurations = []
+    shifted_schedule = conforming_dependabot_configuration()
+    shifted_updates = mapping_list(shifted_schedule["updates"], "self-test Dependabot updates")
+    object_mapping(shifted_updates[0]["schedule"], "self-test Dependabot schedule")["day"] = "tuesday"
+    invalid_dependabot_configurations.append(shifted_schedule)
+    ignored_dependency = conforming_dependabot_configuration()
+    ignored_updates = mapping_list(ignored_dependency["updates"], "self-test Dependabot updates")
+    ignored_updates[1]["ignore"] = [{"dependency-name": "ruff"}]
+    invalid_dependabot_configurations.append(ignored_dependency)
+    for configuration in invalid_dependabot_configurations:
+        try:
+            validate_dependabot_configuration(configuration)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("unreviewed Dependabot configuration must fail")
+
     for ecosystem in DEPENDABOT_GROUP_SHAPE:
         validate_dependabot_groups(ecosystem, conforming_groups(ecosystem))
     excluded_groups = conforming_groups("uv")
@@ -745,6 +808,11 @@ def self_test() -> None:
         ("uv", {"uv-maintenance": {"patterns": ["*"], "update-types": ["patch"]}}),
         ("uv", conforming_groups("uv") | {"unexpected-group": {"patterns": ["*"], "update-types": ["patch"]}}),
         ("uv", excluded_groups),
+        (
+            "uv",
+            conforming_groups("uv")
+            | {"uv-maintenance": {"patterns": ["*"], "update-types": ["patch"], "applies-to": "security-updates"}},
+        ),
     )
     for ecosystem, groups in invalid_group_shapes:
         try:
