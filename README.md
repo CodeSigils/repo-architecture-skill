@@ -2,8 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/repo-architecture-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/repo-architecture-skill/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/CodeSigils/repo-architecture-skill/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/CodeSigils/repo-architecture-skill/actions/workflows/github-code-scanning/codeql)
 [![Skill format](https://img.shields.io/badge/skill%20format-agentskills.io-blue)](https://agentskills.io/specification)
-[![skills.sh](https://skills.sh/b/codesigils/repo-architecture-skill)](https://skills.sh/codesigils/repo-architecture-skill/repo-architecture-skill)
 
 **Architecture follows the artifact.** This methodology helps an agent design,
 review, and tighten skill repositories without forcing the same structure onto a
