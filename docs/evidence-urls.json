@@ -15,7 +15,7 @@
       "source_section": "README.md",
       "notes": "Official agentskills.io specification",
       "status": "active",
-      "last_verified": "2026-09-08"
+      "last_verified": "2026-10-29"
     },
     {
       "name": "GitHub CodeSigils repo-architecture-skill",
@@ -39,9 +39,9 @@
         ".agents/skills"
       ],
       "source_section": "docs/research/platform-skill-support-snapshot.md",
-      "notes": "Official Codex skills, plugins, and AGENTS.md documentation",
+      "notes": "Official Codex skills, plugin packaging, and AGENTS.md documentation",
       "status": "active",
-      "last_verified": "2026-09-08"
+      "last_verified": "2026-10-29"
     },
     {
       "name": "Claude Code skills",
@@ -55,7 +55,7 @@
       "source_section": "docs/research/platform-skill-support-snapshot.md",
       "notes": "Official Claude Code skill documentation",
       "status": "active",
-      "last_verified": "2026-09-08"
+      "last_verified": "2026-10-29"
     },
     {
       "name": "Gemini CLI skills",
@@ -69,7 +69,7 @@
       "source_section": "docs/research/platform-skill-support-snapshot.md",
       "notes": "Official Gemini CLI skill management documentation",
       "status": "active",
-      "last_verified": "2026-09-08"
+      "last_verified": "2026-10-29"
     },
     {
       "name": "Hermes Agent skills",
@@ -83,7 +83,7 @@
       "source_section": "docs/research/platform-skill-support-snapshot.md",
       "notes": "Official Hermes Agent skills documentation",
       "status": "active",
-      "last_verified": "2026-09-08"
+      "last_verified": "2026-10-29"
     },
     {
       "name": "Addy Osmani repository snapshot",
@@ -93,9 +93,9 @@
       ],
       "monitor": false,
       "source_section": "docs/research/repository-structure-snapshot.md",
-      "notes": "Pinned tree used for repository architecture evidence",
+      "notes": "Pinned commit used for repository architecture evidence; tree re-verified 2026-10-30",
       "status": "active",
-      "last_verified": "2026-07-29"
+      "last_verified": "2026-10-30"
     },
     {
       "name": "OpenAI skills repository snapshot",
@@ -105,9 +105,9 @@
       ],
       "monitor": false,
       "source_section": "docs/research/repository-structure-snapshot.md",
-      "notes": "Pinned tree used for repository architecture evidence",
+      "notes": "Pinned commit used for repository architecture evidence; tree re-verified 2026-10-30",
       "status": "active",
-      "last_verified": "2026-07-29"
+      "last_verified": "2026-10-30"
     },
     {
       "name": "Anthropic plugin repository snapshot",
@@ -117,9 +117,9 @@
       ],
       "monitor": false,
       "source_section": "docs/research/repository-structure-snapshot.md",
-      "notes": "Pinned tree used for repository architecture evidence",
+      "notes": "Pinned commit used for repository architecture evidence; tree re-verified 2026-10-30",
       "status": "active",
-      "last_verified": "2026-07-29"
+      "last_verified": "2026-10-30"
     },
     {
       "name": "Wondelai repository snapshot",
@@ -129,9 +129,9 @@
       ],
       "monitor": false,
       "source_section": "docs/research/repository-structure-snapshot.md",
-      "notes": "Pinned tree used for repository architecture evidence",
+      "notes": "Pinned commit used for repository architecture evidence; tree re-verified 2026-10-30",
       "status": "active",
-      "last_verified": "2026-07-29"
+      "last_verified": "2026-10-30"
     }
   ]
 }

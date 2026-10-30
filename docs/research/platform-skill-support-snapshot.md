@@ -1,14 +1,14 @@
 # Platform Skill Support Snapshot
 
-> Refreshed: 2026-10-01
+> Refreshed: 2026-10-29
 >
-> Evidence type: official documentation review retrieved 2026-10-01
+> Evidence type: official documentation review re-verified 2026-10-29
 
 ## Sources and Scope
 
 This dated snapshot separates the portable Agent Skills format from client
-discovery, activation, security, and distribution behavior. Its 2026-10-01
-review uses official documentation for:
+discovery, activation, security, and distribution behavior. Its 2026-10-29
+re-review uses official documentation for:
 
 - [Agent Skills specification](https://agentskills.io/specification);
 - [OpenAI Codex manual](https://developers.openai.com/codex/codex-manual.md),
@@ -35,11 +35,11 @@ This repository deliberately enforces a narrower baseline of only `name` and
 `description` for its own portable payload. That is repository policy, not a
 claim that the standard forbids other fields.
 
-## Client Matrix (reviewed 2026-10-01)
+## Client Matrix (reviewed 2026-10-29)
 
 | Client | Native authoring/discovery paths | `.agents/skills` status | Distribution path | Notable behavior |
 | --- | --- | --- | --- | --- |
-| OpenAI Codex | Repository ancestors, user, admin, and system skill locations | Native for repository and user scopes | Plugins for reusable installation; skill installer for local curated skills | Explicit and implicit invocation; progressive disclosure; optional `agents/openai.yaml` |
+| OpenAI Codex | Repository ancestors, user, admin, and system skill locations | Native for repository and user scopes | Plugins for reusable installation; skill installer for local curated skills | Explicit and implicit invocation; progressive disclosure; portable plugins use root `plugin.json`, with a Codex compatibility overlay when needed |
 | Claude Code | `~/.claude/skills/`, `.claude/skills/`, and plugin `skills/` | Not documented on the reviewed skills page | Claude plugins or direct skill directories | Live change detection, parent and nested discovery, Claude-specific frontmatter and dynamic context |
 | Gemini CLI | `~/.gemini/skills/`, `.gemini/skills/`, built-ins, and extensions | Native alias at user and workspace scopes | `gemini skills install`, link, or extension | Install confirmation and activation consent; reload without restart |
 | Hermes Agent | `~/.hermes/skills/` plus configured external directories | Supported when added to `skills.external_dirs` | Skills Hub, direct URL/GitHub install, or tap | Quarantined install scanning, provenance lock data, bundles, mutable external directories |
@@ -56,8 +56,10 @@ first, then the full `SKILL.md` when explicitly mentioned or implicitly matched.
 Codex supports symlinked skill directories.
 
 For distribution, OpenAI distinguishes a direct skill directory from a plugin.
-A plugin requires `.codex-plugin/plugin.json` and may bundle skills, hooks, MCP
-configuration, app mappings, and presentation assets. Optional
+A portable plugin uses `plugin.json` at its root and may bundle skills, hooks,
+MCP configuration, app mappings, and presentation assets. The
+`.codex-plugin/plugin.json` layout remains supported as a Codex compatibility
+overlay when the root manifest does not provide the OpenAI extension. Optional
 `agents/openai.yaml` inside a skill provides UI metadata, invocation policy, and
 tool dependencies.
 
