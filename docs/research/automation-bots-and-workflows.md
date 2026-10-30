@@ -13,7 +13,7 @@ human decision. It is maintainer guidance, not runtime skill content.
 | Actor | Current use here | Effective boundary |
 | --- | --- | --- |
 | `dependabot[bot]` | Proposes UV and GitHub Actions dependency updates | Creates branches and pull requests; does not merge them |
-| `github-actions[bot]` | Runs `validate` and GitHub-managed Dependabot update workflows | Current repository workflow token is read-only; no PR, branch, release, or issue mutation |
+| `github-actions[bot]` | No repository-authored mutation is observed | Workflow runs are initiated by their event actor; the repository workflow token is read-only and cannot mutate PRs, branches, releases, or issues |
 | Human maintainer | Reviews dependency changes and policy exceptions | Merges changes and changes repository settings |
 
 The `github-actions[bot]` identity is the execution identity for workflow jobs,
@@ -118,13 +118,14 @@ The repository's `validate` workflow has two lanes:
 
 1. `deterministic` runs on pushes and pull requests. It uses read-only
    permissions, pinned actions, a pinned UV version, the locked environment,
-   custom repository validation, `skills-ref`, fixture tests, lint, format, and
-   type checks. It runs for the `requires-python` floor and one newer release,
-   currently 3.13 and 3.14, and a matrix cell reports independently instead of
-   cancelling its siblings. Environment sync, lint, format, type checks, and
-   canonical validation are contiguous so a preflight failure fails fast, and
-   the live `skills-ref` clone retries bounded transient failures while still
-   failing persistent drift.
+   custom repository validation, fixture tests, lint, format, and type checks.
+   It runs for the `requires-python` floor and one newer release, currently
+   3.13 and 3.14, and a matrix cell reports independently instead of cancelling
+   its siblings. Environment sync, lint, format, type checks, and canonical
+   validation are contiguous so a preflight failure fails fast. The lane also
+   runs a pinned `skills-ref` fetch; that command has bounded retries and fails
+   closed on persistent drift, but remains a network-dependent external check
+   rather than a deterministic local one.
 2. `monitor-external-contracts` runs only on the weekly schedule or manual
    dispatch. It checks external evidence URLs and freshness markers. Its URL
    checker retries bounded transient failures but still fails persistent drift.

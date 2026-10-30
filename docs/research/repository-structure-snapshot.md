@@ -1,21 +1,25 @@
 # Skill Repository Structure Snapshot
 
-> Refreshed: 2026-07-22
+> Observed at pinned commits: 2026-07-22
+>
+> Integrity re-verified: 2026-10-30
 >
 > Evidence type: dated repository-tree observation, not a compatibility claim
 
 ## Method
 
-This snapshot queried each repository's default `main` branch through the
-GitHub REST tree API with recursive traversal. Every returned tree reported
-`truncated: false`. A skill count includes blobs named `SKILL.md` at any depth.
+This snapshot resolved each pinned commit through the GitHub REST commit API,
+then queried that commit's tree through the REST tree API with recursive
+traversal. Every returned tree reported `truncated: false`. A skill count
+includes blobs named `SKILL.md` at any depth.
 
-Repository layouts and counts are volatile. The pinned Git tree objects below
-are the authority for this snapshot; current default branches may differ.
+Repository layouts and counts are volatile. The pinned commits below and their
+resolved trees are the authority for this snapshot; current default branches
+may differ.
 
 ## Snapshot
 
-| Repository | Tree SHA | Skills | Observed skill layout | Root shared support | Explicit sync paths |
+| Repository | Commit SHA | Skills | Observed skill layout | Root shared support | Explicit sync paths |
 | --- | --- | ---: | --- | --- | --- |
 | [`addyosmani/agent-skills`](https://github.com/addyosmani/agent-skills/tree/2fbfa004a0192529bc997d103fc12f19a3804aab) | `2fbfa00` | 24 | `skills/<name>/SKILL.md` | `references/`, `scripts/` | None found by name |
 | [`openai/skills`](https://github.com/openai/skills/tree/49f948faa9258a0c61caceaf225e179651397431) | `49f948f` | 44 | `skills/.curated/<name>/SKILL.md` and `skills/.system/<name>/SKILL.md` | None | One reference filename containing `sync`; no payload-sync script |

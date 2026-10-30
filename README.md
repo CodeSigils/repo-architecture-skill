@@ -233,7 +233,7 @@ Start with the [maintainer research map](docs/research/README.md) when a task
 does not clearly identify its evidence source.
 
 - [repository structure snapshot](docs/research/repository-structure-snapshot.md)
-  records four public repositories at pinned Git tree objects;
+  records four public repositories at pinned Git commits and their resolved trees;
 - [platform skill support snapshot](docs/research/platform-skill-support-snapshot.md)
   compares current official Agent Skills, Codex, Claude Code, Gemini CLI, and
   Hermes documentation.
