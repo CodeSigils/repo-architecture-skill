@@ -303,6 +303,7 @@ activity.
 - Runtime references own conditional detail and examples.
 - `evals/` owns intended classification and recommendation behavior.
 - `README.md` owns installation, repository layout, and verification commands.
+- [docs/MAINTENANCE.md](docs/MAINTENANCE.md) owns maintenance procedures and sources of truth.
 - `docs/` and any research notes are evidence, not runtime authority.
 - `AGENTS.md` routes maintainers to these sources without repeating them.
 
