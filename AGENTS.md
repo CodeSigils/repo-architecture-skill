@@ -10,6 +10,7 @@ installable payload.
 - Use runtime references only for conditionally loaded detail.
 - Use `evals/` for intended classification and recommendation behavior.
 - Use `README.md` for installation, layout, and maintainer verification.
+- Use [docs/MAINTENANCE.md](docs/MAINTENANCE.md) for maintenance procedures and sources of truth.
 - Treat `docs/` and research notes as evidence, not runtime authority.
 
 For a runtime-payload change, read `SKILL.md` and only the reference relevant
