@@ -40,9 +40,9 @@ claim that the standard forbids other fields.
 | Client | Native authoring/discovery paths | `.agents/skills` status | Distribution path | Notable behavior |
 | --- | --- | --- | --- | --- |
 | OpenAI Codex | Repository ancestors, user, admin, and system skill locations | Native for repository and user scopes | Plugins for reusable installation; skill installer for local curated skills | Explicit and implicit invocation; progressive disclosure; portable plugins use root `plugin.json`, with a Codex compatibility overlay when needed |
-| Claude Code | `~/.claude/skills/`, `.claude/skills/`, and plugin `skills/` | Not documented on the reviewed skills page | Claude plugins or direct skill directories | Live change detection, parent and nested discovery, Claude-specific frontmatter and dynamic context |
-| Gemini CLI | `~/.gemini/skills/`, `.gemini/skills/`, built-ins, and extensions | Native alias at user and workspace scopes | `gemini skills install`, link, or extension | Install confirmation and activation consent; reload without restart |
-| Hermes Agent | `~/.hermes/skills/` plus configured external directories | Supported when added to `skills.external_dirs` | Skills Hub, direct URL/GitHub install, or tap | Quarantined install scanning, provenance lock data, bundles, mutable external directories |
+| Claude Code | `$HOME/.claude/skills/`, `.claude/skills/`, and plugin `skills/` | Not documented on the reviewed skills page | Claude plugins or direct skill directories | Live change detection, parent and nested discovery, Claude-specific frontmatter and dynamic context |
+| Gemini CLI | `$HOME/.gemini/skills/`, `.gemini/skills/`, built-ins, and extensions | Native alias at user and workspace scopes | `gemini skills install`, link, or extension | Install confirmation and activation consent; reload without restart |
+| Hermes Agent | `$HOME/.hermes/skills/` plus configured external directories | Supported when added to `skills.external_dirs` | Skills Hub, direct URL/GitHub install, or tap | Quarantined install scanning, provenance lock data, bundles, mutable external directories |
 
 ## OpenAI Codex
 
@@ -98,9 +98,9 @@ consent before the skill gains access to its resources.
 
 ## Hermes Agent
 
-Hermes uses `~/.hermes/skills/` as its primary source of truth and can scan
+Hermes uses `$HOME/.hermes/skills/` as its primary source of truth and can scan
 additional directories configured under `skills.external_dirs`. The official
-example explicitly includes `~/.agents/skills`.
+example explicitly includes `$HOME/.agents/skills`.
 
 External directories are integration points, not write-protection boundaries:
 Hermes can update a discovered skill in place when the directory is writable.
