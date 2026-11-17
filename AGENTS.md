@@ -30,7 +30,10 @@ authoritative; research explains their evidence and maintenance boundary.
 - For payload layout, canonical-source, generated-artifact, or repository-shape
   decisions, read `docs/research/repository-structure-snapshot.md`.
 
-Use `docs/research/README.md` when the task does not clearly match one route.
+Use `docs/research/README.md` when the task does not clearly match one route,
+including its evidence-type and point-of-use re-verification guidance for
+volatile claims (URL/anchor freshness vs semantic guidance vs named-runtime
+support evidence).
 
 Do not recreate a root reference mirror or payload sync step unless a concrete
 distribution consumer requires a generated artifact. Before claiming
