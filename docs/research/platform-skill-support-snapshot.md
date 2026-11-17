@@ -1,14 +1,15 @@
 # Platform Skill Support Snapshot
 
-> Refreshed: 2026-10-29
+> Refreshed: 2026-11-17
 >
-> Evidence type: official documentation review re-verified 2026-10-29
+> Evidence type: official documentation review re-verified 2026-11-17 (live URL/required-anchor checks via `scripts/verify-urls.py`; documented behavior not re-certified by named-runtime workflow tests)
 
 ## Sources and Scope
 
 This dated snapshot separates the portable Agent Skills format from client
-discovery, activation, security, and distribution behavior. Its 2026-10-29
-re-review uses official documentation for:
+discovery, activation, security, and distribution behavior. Its 2026-11-17
+re-review re-verified the cited official documentation pages were reachable and
+contained the manifest's required anchors for:
 
 - [Agent Skills specification](https://agentskills.io/specification);
 - [OpenAI Codex manual](https://developers.openai.com/codex/codex-manual.md),
