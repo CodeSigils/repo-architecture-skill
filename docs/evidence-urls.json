@@ -15,7 +15,7 @@
       "source_section": "README.md",
       "notes": "Official agentskills.io specification",
       "status": "active",
-      "last_verified": "2026-10-29"
+      "last_verified": "2026-11-17"
     },
     {
       "name": "GitHub CodeSigils repo-architecture-skill",
@@ -26,7 +26,7 @@
       "source_section": "README.md",
       "notes": "Source repository for this skill",
       "status": "active",
-      "last_verified": "2026-09-08"
+      "last_verified": "2026-11-17"
     },
     {
       "name": "OpenAI Codex manual",
@@ -41,7 +41,7 @@
       "source_section": "docs/research/platform-skill-support-snapshot.md",
       "notes": "Official Codex skills, plugin packaging, and AGENTS.md documentation",
       "status": "active",
-      "last_verified": "2026-10-29"
+      "last_verified": "2026-11-17"
     },
     {
       "name": "Claude Code skills",
@@ -55,7 +55,7 @@
       "source_section": "docs/research/platform-skill-support-snapshot.md",
       "notes": "Official Claude Code skill documentation",
       "status": "active",
-      "last_verified": "2026-10-29"
+      "last_verified": "2026-11-17"
     },
     {
       "name": "Gemini CLI skills",
@@ -69,7 +69,7 @@
       "source_section": "docs/research/platform-skill-support-snapshot.md",
       "notes": "Official Gemini CLI skill management documentation",
       "status": "active",
-      "last_verified": "2026-10-29"
+      "last_verified": "2026-11-17"
     },
     {
       "name": "Hermes Agent skills",
@@ -83,7 +83,7 @@
       "source_section": "docs/research/platform-skill-support-snapshot.md",
       "notes": "Official Hermes Agent skills documentation",
       "status": "active",
-      "last_verified": "2026-10-29"
+      "last_verified": "2026-11-17"
     },
     {
       "name": "Addy Osmani repository snapshot",

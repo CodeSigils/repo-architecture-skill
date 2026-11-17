@@ -1,9 +1,9 @@
 # Automation Bots and Workflow Boundaries
 
-> Reviewed: 2026-10-29
+> Reviewed: 2026-11-17
 >
 > Evidence type: repository configuration, GitHub runner-image announcements,
-> and official GitHub documentation
+> and official GitHub documentation (local config/URL-contract recheck 2026-11-17; repository API/security-settings claims remain point-in-time where noted)
 
 This note records what automation can do in this repository and what remains a
 human decision. It is maintainer guidance, not runtime skill content.
