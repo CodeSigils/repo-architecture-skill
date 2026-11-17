@@ -37,6 +37,15 @@ Report network-dependent checks (e.g. live external URL verification) separately
   - `pre-commit` enforces `ruff check`, `ruff format --check`, `ty check`, portability check, payload validation, and expiry checks via `uv run --locked`.
 - **Branch protection:** `main` is PR-only with required status checks; direct pushes are blocked.
 
+### Evidence and re-verification (volatile guidance)
+
+Treat scheduled URL/freshness checks as a monitoring backstop, not proof of semantic currency or runtime support. Follow [docs/research/README.md — Evidence types and re-verification](research/README.md#evidence-types-and-re-verification) when refreshing evidence or changing volatile guidance:
+
+- Keep claim types bounded: live URL/anchor/freshness (`docs/evidence-urls.json`, `verify-urls.py`, `check-expiry.py`) vs semantic guidance (dated `docs/research/*.md`) vs named-runtime/support (`docs/portability-contract.md`, `docs/compatibility/*.md`).
+- Re-verify point-of-use before changing behavior/claims based on volatile guidance, on drift signals, or for point-in-time repo/platform facts (recheck via API/UI/CLI and record context/date).
+- Record method/scope, exclusions/limits, checked context, and decision-relevant deltas (or "no material change observed for [specific claims checked]"); update dates only for what was actually checked.
+- Do not upgrade compatibility/support status from docs or freshness checks; require recorded client version + installation + workflow evidence in `docs/compatibility/` with aligned claims. Update authoritative implementation/tests/config first, run relevant checks, then refresh research/evidence with clear `what:`/`why:`.
+
 ## Volatility
 Medium-High — monitor CI (deterministic matrix + CodeQL), Dependabot PRs, and weekly external-contract checks (schedule). Inspect before VCS writes and on exceptions.
 
