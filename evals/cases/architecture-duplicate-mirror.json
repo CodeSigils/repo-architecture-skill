@@ -32,6 +32,12 @@
     ]
   },
   "grading": {
+    "boundary_term_sets": {
+      "authoring_source": ["skills/example/"],
+      "runtime_payload": ["skills/example/", "runtime"],
+      "install_artifact": ["skills/example/", "install"],
+      "maintainer_infrastructure": ["readme"]
+    },
     "recommendation_term_sets": [
       ["duplicate"],
       ["mirror", "remove"],

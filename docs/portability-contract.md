@@ -38,13 +38,16 @@ portability-marker, and behavioral-contract validation.
 
 | Runtime | Version | Status |
 | --- | --- | --- |
-| OpenAI Codex CLI | 0.133.0 | `workflow_verified` |
+| OpenAI Codex CLI | 0.133.0 | `workflow_verified` (historical result) |
+| OpenAI Codex CLI | 0.167.2 | `limited`; the prior exact boundary-value contract was not satisfied |
+| OpenAI Codex CLI | 0.169.0 | `workflow_verified` against the 2026-11-17 semantic-boundary contract |
 | Hermes Agent | 0.19.0 | `workflow_verified` with a post-response shutdown-warning limitation |
 | Claude Code | 2.1.159 | `candidate`; discovery and behavior were inconclusive |
 | Gemini CLI | not installed | `candidate` |
 
 The dated procedure, prompts, grading, and limitations are recorded in
-[the 2026-07-22 compatibility report](compatibility/2026-07-22.md).
+[the compatibility reports](compatibility/2026-07-22.md), including the
+[2026-11-17 Codex regression record](compatibility/2026-11-17.md).
 
 ## Adding runtime evidence
 

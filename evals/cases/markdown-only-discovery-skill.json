@@ -32,6 +32,12 @@
     ]
   },
   "grading": {
+    "boundary_term_sets": {
+      "authoring_source": ["skills/skill-discovery/"],
+      "runtime_payload": ["skills/skill-discovery/", "runtime"],
+      "install_artifact": ["skills/skill-discovery/", "install"],
+      "maintainer_infrastructure": ["readme", "ci"]
+    },
     "recommendation_term_sets": [
       ["separate external monitoring from pull-request validation"],
       ["separate deterministic pull-request checks from volatile monitoring"]
@@ -40,6 +46,9 @@
   "fixture_files": {
     "README.md": "# Discovery Skill\n\nThe canonical installable skill is `skills/skill-discovery/`.\n",
     "skills/skill-discovery/SKILL.md": "---\nname: skill-discovery\ndescription: Discover and route to skills.\n---\n\n# Skill Discovery\n\nInspect the repository and route requests to the appropriate skill.\n",
-    ".gitignore": ".agents/\n"
+    ".gitignore": ".agents/\n",
+    ".github/workflows/ci.yml": "name: CI\non: pull_request\njobs:\n  validate:\n    runs-on: ubuntu-latest\n    steps:\n      - run: python scripts/validate.py\n",
+    "docs/evidence-urls.json": "{\n  \"external_checks\": [\"https://example.invalid/monitor\"]\n}\n",
+    "scripts/verify-urls.py": "\"\"\"Scheduled external URL monitor.\"\"\"\n"
   }
 }

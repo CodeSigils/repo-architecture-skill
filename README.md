@@ -110,14 +110,17 @@ Named-runtime claims are narrower:
 | Runtime | Tested version | Status |
 | --- | --- | --- |
 | OpenAI Codex CLI | 0.133.0 | `workflow_verified` |
+| OpenAI Codex CLI | 0.167.2 | `limited`; the prior exact boundary-value contract was not satisfied |
+| OpenAI Codex CLI | 0.169.0 | `workflow_verified` against the 2026-11-17 semantic-boundary contract |
 | Hermes Agent | 0.19.0 | `workflow_verified` with a recorded shutdown-warning limitation |
 | Claude Code | 2.1.159 | `candidate`; certification was inconclusive |
 | Gemini CLI | not installed | `candidate` |
 
-See [the portability contract](docs/portability-contract.md) and
-[dated compatibility report](docs/compatibility/2026-07-22.md) for evidence,
-prompts, grading, and limitations. These results do not imply universal or
-future-version compatibility.
+See [the portability contract](docs/portability-contract.md) and dated
+compatibility reports for [2026-07-22](docs/compatibility/2026-07-22.md) and
+[2026-11-17](docs/compatibility/2026-11-17.md) for evidence, prompts, grading,
+and limitations. These results do not imply universal or future-version
+compatibility.
 
 ## Use
 

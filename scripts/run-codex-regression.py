@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -27,6 +28,14 @@ NEGATIVE_PROMPT = ROOT / "evals/codex/negative-prompt.md"
 RESULT_SCHEMA = ROOT / "evals/codex/result.schema.json"
 CASE_DIR = ROOT / "evals/cases"
 GRADER = ROOT / "scripts/grade-codex-regression.py"
+CONTRACT_INPUTS = (
+    SKILL_DIR,
+    POSITIVE_PROMPT,
+    NEGATIVE_PROMPT,
+    RESULT_SCHEMA,
+    GRADER,
+    ROOT / "scripts/evaluation_contract.py",
+)
 TOKEN_FIELDS = (
     "input_tokens",
     "cached_input_tokens",
@@ -45,6 +54,33 @@ def positive_int(value: str) -> int:
 
 def timestamp(value: datetime) -> str:
     return value.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def contract_digest(case_id: str) -> str:
+    """Hash the payload and deterministic inputs that define one evaluated contract."""
+    digest = hashlib.sha256()
+    paths = (*CONTRACT_INPUTS, CASE_DIR / f"{case_id}.json")
+    for input_path in paths:
+        files = (
+            sorted(path for path in input_path.rglob("*") if path.is_file()) if input_path.is_dir() else [input_path]
+        )
+        for path in files:
+            relative = path.relative_to(ROOT).as_posix().encode("utf-8")
+            digest.update(len(relative).to_bytes(4, "big"))
+            digest.update(relative)
+            content = path.read_bytes()
+            digest.update(len(content).to_bytes(8, "big"))
+            digest.update(content)
+    return digest.hexdigest()
+
+
+def working_tree_dirty() -> bool:
+    """Return whether evaluation inputs may differ from the recorded Git revision."""
+    return bool(
+        subprocess.run(
+            ["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout.strip()
+    )
 
 
 def run_checked(command: list[str], cwd: Path) -> None:
@@ -263,6 +299,7 @@ def run_self_tests() -> int:
         assert not fixture_path_is_safe("src//example.py")
         assert not fixture_path_is_safe(".")
         assert positive_int("1") == 1
+        assert len(contract_digest("architecture-duplicate-mirror")) == 64
         try:
             positive_int("0")
         except argparse.ArgumentTypeError:
@@ -323,6 +360,8 @@ def main() -> int:
             text=True,
             check=True,
         ).stdout.strip(),
+        "working_tree_dirty": working_tree_dirty(),
+        "evaluation_contract_sha256": contract_digest(args.case_id),
         "runtime": {
             "codex_cli": observed_version,
             "codex_home": str(codex_home) if codex_home else None,

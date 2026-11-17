@@ -18,6 +18,7 @@ class CaseContract:
     fixture_files: dict[str, str]
     archetype: str
     boundaries: dict[str, str]
+    boundary_term_sets: dict[str, tuple[str, ...]]
     recommendation_term_sets: tuple[tuple[str, ...], ...]
 
 
@@ -78,6 +79,19 @@ def load_case_contract(case_dir: Path, case_id: str) -> CaseContract:
         typed_boundaries[name] = value
 
     grading = object_mapping(data.get("grading"), f"{path}: grading")
+    raw_boundary_term_sets = object_mapping(grading.get("boundary_term_sets"), f"{path}: grading.boundary_term_sets")
+    if set(raw_boundary_term_sets) != set(typed_boundaries):
+        raise ValueError(f"{path}: boundary_term_sets must cover exactly the declared boundaries")
+    boundary_term_sets: dict[str, tuple[str, ...]] = {}
+    for name, raw_terms in raw_boundary_term_sets.items():
+        if (
+            not isinstance(raw_terms, list)
+            or not raw_terms
+            or not all(isinstance(term, str) and term for term in raw_terms)
+        ):
+            raise TypeError(f"{path}: boundary_term_sets[{name!r}] must contain non-empty strings")
+        boundary_term_sets[name] = tuple(term.casefold() for term in raw_terms)
+
     raw_term_sets = grading.get("recommendation_term_sets")
     if not isinstance(raw_term_sets, list) or not raw_term_sets:
         raise TypeError(f"{path}: grading.recommendation_term_sets must be a non-empty list")
@@ -96,5 +110,6 @@ def load_case_contract(case_dir: Path, case_id: str) -> CaseContract:
         fixture_files=fixture_files,
         archetype=archetype,
         boundaries=typed_boundaries,
+        boundary_term_sets=boundary_term_sets,
         recommendation_term_sets=tuple(term_sets),
     )
