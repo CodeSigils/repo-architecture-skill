@@ -92,6 +92,7 @@ DEPENDABOT_ENTRY_KEYS = {
     "groups",
 }
 EXPECTED_REFERENCES = {
+    "concern-evidence-checklist.md",
     "dev-workflow-patterns.md",
     "file-swamp-patterns.md",
     "npm-publishing-for-agent-skills.md",

@@ -80,22 +80,42 @@ static skill directory.
 ## Behavioral fixture contract
 
 Decision-heavy skills need explicit examples in addition to structural checks.
-A compact contract should include:
+Distinguish **selection/activation** evidence (should-trigger / should-not-trigger
+or non-activation boundaries) from **in-procedure behavior** evidence (correct
+classification, boundary mapping, recommendations, and prohibited actions for a
+given profile). A compact contract should include:
 
-- positive and negative trigger prompts;
-- representative observed profiles;
-- expected archetype or route;
-- required boundary assignments;
-- required recommendations;
-- prohibited recommendations or unsafe actions.
+- positive and negative trigger prompts or scenarios (including non-activation
+  boundaries);
+- representative observed profiles and source context;
+- expected route/archetype and boundary assignments (for in-procedure cases);
+- required recommendations and prohibited recommendations/unsafe actions;
+- evidence expectations (paths/claims) and, when recorded, environment/context
+  needed to interpret results (named runtime/model/version, constraints).
 
-Validate the contract's schema in the deterministic lane. The contract does not
-prove model behavior, but it makes intended behavior reviewable and supports a
-future model runner without embedding provider-specific execution in the skill.
+Validate fixture shape and grading contracts in the deterministic lane. Shape
+and deterministic grading do not prove model behavior; they make intended
+behavior reviewable. Keep routine CI model-free where possible. Run model
+regression only after material trigger/workflow changes or on a schedule, grade
+observable outputs against the contract, and record limitations; do not require
+model availability for ordinary repository changes or treat a single run as a
+reliability baseline.
 
-Run model regression only after material trigger or workflow changes, or on a
-schedule. Grade observable outputs against the fixture contract. Do not require
-model availability for ordinary repository changes.
+## Evidence recording for volatile recommendations
+
+When a recommendation depends on volatile guidance, external contracts, or
+time-sensitive repo/platform facts (CI/runner, Actions permissions/trust,
+Dependabot semantics, client discovery/install/activation, release/catalog
+state, compatibility), record:
+
+- the **decision question** and relevant scope/surface;
+- **evidence basis** with type and checked date/revision/runtime identity (or
+  explicit “unverified/point-in-time” status), and what it proves/does not prove;
+- a concrete **recheck trigger** (event, change, or due condition).
+
+Prefer point-of-use primary-source verification before changing behavior or
+claims. Label comparative inputs as *observed* (source + pinned revision or URL
++ checked date) separately from *recommended* (with limits/transfer context).
 
 ## Policy tests
 
