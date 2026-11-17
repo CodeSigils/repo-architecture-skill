@@ -64,12 +64,16 @@ required client API does.
 
 Test commands against the actual tracked layout and name the produced artifact.
 For several distribution paths, maintain one inventory per artifact rather than
-one ambiguous global file list.
+one ambiguous global file list. Keep runtime payload distinct from maintainer
+control-plane/evidence artifacts (research, evidence manifests, compatibility
+reports) and do not treat install docs or maintainer records as runtime/support
+proof.
 
 Client-specific metadata, hooks, or dynamic commands belong in a thin adapter,
 not the portable core. Review such adapters as executable or privileged input:
 identify commands, network access, writable paths, credentials, and approval
-behavior before enabling them.
+behavior before enabling them. For volatile install/discovery guidance, record
+the checked source/date and recheck trigger rather than assuming stability.
 
 ## Change-admission questions
 

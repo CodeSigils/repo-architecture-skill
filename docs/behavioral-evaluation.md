@@ -6,22 +6,38 @@ the established `repo-health-and-sync-skill` model regression: deterministic
 fixture and grader tests run in ordinary CI, while authenticated model runs are
 optional maintainer evidence.
 
+## Evidence separation
+
+Behavioral evaluation distinguishes **selection/activation** evidence (does the
+skill trigger or correctly not trigger) from **in-procedure behavior** evidence
+(correct classification, boundary mapping, recommendations, and prohibited
+actions for an in-scope profile). Structural/shape checks and deterministic
+grading do not prove model behavior or runtime support; live runs are bounded
+to the recorded payload, case, runtime/model, and environment.
+
 ## Cases
 
-The bounded evaluation has two positive cases plus one shared negative scenario:
+The bounded evaluation currently has two in-procedure positive cases plus one
+shared negative (non-activation/selection-boundary) scenario:
 
-1. `architecture-duplicate-mirror` asks for a read-only architecture audit of a
-   Markdown-only skill repository containing an undeclared duplicate root
-   `SKILL.md`.
-2. `markdown-only-discovery-skill` checks that volatile external monitoring is
-   separated from deterministic pull-request validation.
-3. The negative scenario asks about a narrow parser defect and must not activate
-   the repository-architecture workflow.
+1. **`architecture-duplicate-mirror` (in-procedure behavior):** read-only
+   architecture audit of a Markdown-only skill repository containing an
+   undeclared duplicate root `SKILL.md` — expects correct archetype/boundary
+   mapping and a duplicate-mirror recommendation grounded in fixture evidence.
+2. **`markdown-only-discovery-skill` (in-procedure behavior):** checks that
+   volatile external monitoring is separated from deterministic pull-request
+   validation — expects correct classification/boundaries and a lane-separation
+   recommendation.
+3. **Negative scenario (selection/non-activation boundary):** a narrow parser
+   defect prompt must not activate the repository-architecture workflow.
 
 The positive result follows `evals/codex/result.schema.json`. It retains the
 common `case_id`, `skills_used`, `actions`, `changed_paths`, `outcome`,
 `summary`, and `environment_limitations` fields, then adds the domain-specific
 classification, four-boundary map, evidence paths, and recommendations.
+Additional cases should state whether they provide selection/activation or
+in-procedure behavior evidence (or both), record relevant environment/context,
+and keep required/prohibited expectations explicit.
 
 ## Deterministic CI
 

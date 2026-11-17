@@ -29,14 +29,17 @@ not duplicate runtime instructions.
 
 ## Three evidence levels
 
-| Claim             | Minimum evidence                                                                                         |
-| ----------------- | -------------------------------------------------------------------------------------------------------- |
-| Payload portable  | Canonical files parse under the claimed format and contain no known platform-only runtime dependency     |
-| Install verified  | A named runtime and version locates or installs the exact canonical payload through a recorded procedure |
-| Workflow verified | That runtime completes representative positive and negative tasks against the behavioral contract        |
+| Claim             | Minimum evidence                                                                                         | Proves / does not prove |
+| ----------------- | -------------------------------------------------------------------------------------------------------- | ----------------------- |
+| Payload portable  | Canonical files parse under the claimed format and contain no known platform-only runtime dependency     | Structure/known markers only; not installation or workflow behavior. |
+| Install verified  | A named runtime and version locates or installs the exact canonical payload through a recorded procedure | Discovery/installation for that runtime+version; not workflow behavior or broader compatibility. |
+| Workflow verified | That runtime completes representative positive and negative tasks against the behavioral contract        | Observed behavior for recorded cases/runtime/context; not universal or future-version compatibility. |
 
-A schema check, directory convention, marketplace listing, or successful copy
-does not establish workflow behavior.
+A schema/shape check, deterministic validator, URL/anchor/freshness pass,
+directory convention, marketplace listing, or successful copy does not establish
+semantic correctness or workflow behavior. Platform documentation is intended
+behavior, not runtime certification. Record checked dates/versions, scope, and
+limitations; treat point-in-time or volatile claims as needing re-verification.
 
 ## Compatibility states
 
