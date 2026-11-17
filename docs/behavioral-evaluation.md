@@ -50,7 +50,10 @@ uv run --locked python scripts/grade-codex-regression.py --self-test
 
 These tests verify isolated fixture construction, skill installation, command
 shape, result-schema parsing, transcript accounting, positive grading, negative
-trigger behavior, and representative grader failure.
+trigger behavior, and representative grader failure. The positive grader
+requires all four named boundaries and case-defined semantic anchors for each;
+it accepts evidence-grounded explanatory values rather than requiring an exact
+copy of the fixture's display strings.
 
 ## Optional Live Run
 
@@ -79,7 +82,10 @@ uv run --locked python scripts/run-codex-regression.py \
 The evaluated agent receives a read-only sandbox. Each run preserves positive
 and negative transcripts, final results, stderr, deterministic grade, runtime
 metadata, duration, usage when emitted, and the tested repository revision
-under ignored `artifacts/codex-regression/`.
+under ignored `artifacts/codex-regression/`. The summary also records whether
+the repository worktree was dirty and a SHA-256 digest of the payload, fixture,
+prompts, schema, and grader inputs, so an uncommitted evaluation contract is
+still identifiable.
 
 Use `--prepare-only` to inspect a generated fixture without running Codex. With
 no `--fixture-dir`, the fixture persists beneath the selected `--output-dir` (or

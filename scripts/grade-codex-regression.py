@@ -39,6 +39,22 @@ def has_fixture_evidence(value: object, fixture_files: dict[str, str]) -> bool:
     )
 
 
+def maps_boundaries(boundaries: object, contract: Any) -> bool:
+    """Return whether every required boundary has its case-defined semantic anchors."""
+    if not isinstance(boundaries, dict) or set(boundaries) != set(contract.boundaries):
+        return False
+    for name, expected_terms in contract.boundary_term_sets.items():
+        value = boundaries.get(name)
+        if not isinstance(value, str):
+            return False
+        if value == contract.boundaries[name]:
+            continue
+        normalized = value.casefold()
+        if not all(term in normalized for term in expected_terms):
+            return False
+    return True
+
+
 def grade_positive(result: dict[str, Any], case_id: str = "architecture-duplicate-mirror") -> list[str]:
     errors: list[str] = []
     contract = load_case_contract(CASE_DIR, case_id)
@@ -63,7 +79,7 @@ def grade_positive(result: dict[str, Any], case_id: str = "architecture-duplicat
     if classification.get("archetype") != contract.archetype:
         errors.append(f"fixture was not classified as {contract.archetype}")
     boundaries = classification.get("boundaries")
-    if boundaries != contract.boundaries:
+    if not maps_boundaries(boundaries, contract):
         errors.append("classification does not map all four boundaries")
     evidence = classification.get("evidence_paths")
     if not has_fixture_evidence(evidence, contract.fixture_files):
@@ -126,9 +142,20 @@ def run_self_tests() -> int:
         ],
     }
     assert grade_positive(passing) == []
+    verbose = json.loads(json.dumps(passing))
+    verbose["classification"]["boundaries"] = {
+        "authoring_source": "Edit skills/example/SKILL.md as the canonical source.",
+        "runtime_payload": "skills/example/SKILL.md is the sole runtime entry point.",
+        "install_artifact": "Install skills/example/ as the documented installable directory.",
+        "maintainer_infrastructure": "README.md records the maintainer-facing repository metadata.",
+    }
+    assert grade_positive(verbose) == []
     failing = json.loads(json.dumps(passing))
     failing["classification"]["boundaries"].pop("runtime_payload")
     assert any("four boundaries" in error for error in grade_positive(failing))
+    wrong_boundary = json.loads(json.dumps(passing))
+    wrong_boundary["classification"]["boundaries"]["install_artifact"] = "The root mirror is useful."
+    assert any("four boundaries" in error for error in grade_positive(wrong_boundary))
     fabricated = json.loads(json.dumps(passing))
     fabricated["skills_used"] = ["not-repo-architecture-skill"]
     fabricated["classification"]["boundaries"]["authoring_source"] = "invented/source"
