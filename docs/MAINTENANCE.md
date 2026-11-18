@@ -6,25 +6,11 @@
 - Research/decisions: [docs/research/](research/)
 
 ## Standard verification
-Follow the **Verify** section in [README.md](../README.md). At a minimum:
 
-```bash
-uv sync --locked
-uv run --locked ruff check scripts .github/scripts
-uv run --locked ruff format --check scripts .github/scripts
-uv run --locked ty check scripts .github/scripts
-uv run --locked python scripts/validate.py
-uvx --from git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref skills-ref validate skills/repo-architecture-skill
-uv run --locked python scripts/validate.py --self-test
-uv run --locked python scripts/run-codex-regression.py --self-test
-uv run --locked python scripts/grade-codex-regression.py --self-test
-uv run --locked python .github/scripts/check-portability.py
-uv run --locked python scripts/verify-urls.py --self-test
-uv run --locked python scripts/check-expiry.py --self-test
-uv run --locked python scripts/check-expiry.py
-```
-
-Report network-dependent checks (e.g. live external URL verification) separately as they are not deterministic.
+Follow the **Verify** section in [README.md](../README.md) for the canonical
+command list, environment setup, matrix/interpreter notes, and network-dependent
+check boundaries. Do not duplicate that command list here; update it in
+`README.md` only.
 
 ## Automation
 
