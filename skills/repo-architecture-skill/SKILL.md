@@ -13,13 +13,17 @@ documentation, or a general repository-health audit.
 
 ## Procedure
 
-1. **Frame the decision.** Name the audit/recommendation question and the claim
-   being made (structure, installability, runtime behavior, compatibility,
-   release, maintenance). Record in scope and out of scope. When the question
-   depends on volatile guidance or time-sensitive repo/platform facts, plan a
-   point-of-use check and note the recheck trigger/date.
+1. **Frame the decision and inspect repository shape.** Name the
+   audit/recommendation question and the claim being made (structure,
+   installability, runtime behavior, compatibility, release, maintenance).
+   Record in scope and out of scope. Inspect the observed repository shape
+   first - inventory files, entrypoints, install/publication paths, and control
+   surfaces before prescribing controls. When the question depends on volatile
+   guidance or time-sensitive repo/platform facts, plan a point-of-use check
+   and note the recheck trigger/date.
 2. **Locate artifacts and paths.** Record every runtime entrypoint and every
-   supported installation or publication path.
+   supported installation or publication path. Treat this inventory as evidence
+   for later boundary and control decisions, not as something to assume.
 3. **Classify by source family/archetype and product.** Choose the smallest
    fitting archetype(s) below and identify the source family/context before
    borrowing practices (portable/static collection, governed/heterogeneous
@@ -216,9 +220,9 @@ limits), not only the originating anecdote.
 
 ## Completion Checklist
 
-- [ ] Decision question/scope is stated; archetype and source family/context are supported by observed files and distribution paths (transfer limits noted where relevant).
+- [ ] Decision question/scope is stated; repository shape was inspected first and archetype/source family/context are supported by observed files and distribution paths (transfer limits noted where relevant). No controls were prescribed before boundaries/artifacts were identified.
 - [ ] All four boundaries are declared (including empty/identical ones), with canonical sources/replicas, consumers, and payload vs maintainer/control-plane items explicit.
-- [ ] Runtime references/scripts have direct consumers; counts treated as signals, not ratios.
+- [ ] Runtime references/scripts have direct consumers; reference routing is bidirectionally complete (every `references/*.md` routed, every routed ref exists); counts treated as signals, not ratios.
 - [ ] Claims are evidence-typed and bounded (observed/deterministic/freshness/semantic/installation/behavior/support status) with what they prove and do not prove.
 - [ ] Deterministic validation, volatile monitoring, and model/runtime certification are separated; selection/activation vs behavior evidence distinguished where relevant.
 - [ ] Volatile recommendations (if any) include decision question, evidence basis/checked date, and recheck trigger.

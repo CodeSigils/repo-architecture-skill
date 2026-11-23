@@ -60,6 +60,7 @@ BOUNDARIES = {
     "maintainer_infrastructure",
 }
 LINK_RE = re.compile(r"(?<!!)\[[^]]+\]\(([^)]+)\)")
+REFERENCE_ROUTE_RE = re.compile(r"references/([A-Za-z0-9_.-]+\.md)")
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 PINNED_ACTION_RE = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
 SKILLS_REF_SPEC = "git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref"
@@ -278,6 +279,25 @@ def validate_payload_inventory() -> list[Path]:
     return sorted(observed_files)
 
 
+def reference_routing_section(body: str) -> str:
+    match = re.search(r"^## Reference Routing\n(.*?)(?=^## |\Z)", body, re.MULTILINE | re.DOTALL)
+    if match is None:
+        fail(f"{SKILL}: missing section '## Reference Routing'")
+    return match.group(1)
+
+
+def validate_reference_routing(body: str, references: list[Path]) -> None:
+    routing_section = reference_routing_section(body)
+    routed = set(REFERENCE_ROUTE_RE.findall(routing_section))
+    observed = {path.name for path in references}
+    unrouted = sorted(observed - routed)
+    dangling = sorted(routed - observed)
+    if unrouted:
+        fail(f"{SKILL}: reference files not routed from Reference Routing: {unrouted}")
+    if dangling:
+        fail(f"{SKILL}: Reference Routing names missing reference files: {dangling}")
+
+
 def validate_skill() -> None:
     if not SKILL.exists():
         fail(f"missing canonical runtime entrypoint: {SKILL}")
@@ -291,10 +311,7 @@ def validate_skill() -> None:
 
     payload_files = validate_payload_inventory()
     references = [path for path in payload_files if path.parent == REF_DIR]
-    for reference in references:
-        route = f"references/{reference.name}"
-        if route not in body:
-            fail(f"{SKILL}: does not route {route}")
+    validate_reference_routing(body, references)
 
     for path in [SKILL, *references]:
         errors = local_link_errors(path, SKILL_DIR)
@@ -708,13 +725,36 @@ def self_test() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         skill = root / "example-skill" / "SKILL.md"
-        skill.parent.mkdir()
+        ref_dir = skill.parent / "references"
+        ref_dir.mkdir(parents=True)
         skill.write_text(folded, encoding="utf-8")
         data, _ = parse_skill(skill)
         validate_frontmatter(data, skill)
         source = root / "README.md"
         source.write_text("[missing](nope.md)", encoding="utf-8")
         assert local_link_errors(source, root)
+
+        (ref_dir / "alpha.md").write_text("# Alpha\n", encoding="utf-8")
+        (ref_dir / "beta.md").write_text("# Beta\n", encoding="utf-8")
+        routing_body = "## Reference Routing\n\n- Read `references/alpha.md`.\n- Read `references/beta.md`.\n"
+        validate_reference_routing(routing_body, [ref_dir / "alpha.md", ref_dir / "beta.md"])
+        try:
+            validate_reference_routing(
+                "## Reference Routing\n\n- Read `references/alpha.md`.\n", [ref_dir / "alpha.md", ref_dir / "beta.md"]
+            )
+        except ValueError as exc:
+            assert "not routed from Reference Routing" in str(exc)
+        else:
+            raise AssertionError("unrouted reference files must fail")
+        try:
+            validate_reference_routing(
+                "## Reference Routing\n\n- Read `references/alpha.md`.\n- Read `references/beta.md`.\n- Read `references/missing.md`.\n",
+                [ref_dir / "alpha.md", ref_dir / "beta.md"],
+            )
+        except ValueError as exc:
+            assert "missing reference files" in str(exc)
+        else:
+            raise AssertionError("dangling routed references must fail")
     try:
         validate_frontmatter({"name": "Bad_Name", "description": "word " * 12}, SKILL)
     except ValueError:
