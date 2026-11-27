@@ -12,6 +12,7 @@ decision exists and which volatile claims need fresh verification.
 | Dependabot, GitHub Actions, runner images, workflow permissions, or bot-authored pull requests | [Automation Bots and Workflow Boundaries](automation-bots-and-workflows.md) | `.github/`, `scripts/validate.py`, and repository settings |
 | A claim about Codex, Claude Code, Gemini CLI, Hermes, installation, discovery, or skill compatibility | [Platform Skill Support Snapshot](platform-skill-support-snapshot.md) | Current official platform documentation and the matching compatibility report |
 | Canonical source, payload boundaries, generated artifacts, repository structure, or distribution layout | [Skill Repository Structure Snapshot](repository-structure-snapshot.md) | The current repository inventory, `README.md`, `SKILL.md`, and validation rules |
+| Reference routing parity, unrouted/dangling refs, or C-036 anchor+delta differentiation | [Reference Routing Parity](reference-routing-parity.md) | `scripts/validate.py`, `SKILL.md` Reference Routing, and existing payload allowlist/inventory checks |
 
 ## How to use research safely
 
